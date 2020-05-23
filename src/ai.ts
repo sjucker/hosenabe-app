@@ -59,7 +59,6 @@ abstract class AIPlayer {
         this.name = playerName;
         // TODO solve this differently
         this.socket = ioclient.connect(`http://localhost:${process.env.PORT || 3000}`);
-        console.log(this.socket)
         this.gameState = null;
 
         this.play = this.play.bind(this);
