@@ -57,7 +57,9 @@ abstract class AIPlayer {
         this.id = null;
         this.gameId = gameId;
         this.name = playerName;
-        this.socket = ioclient.connect(process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : undefined);
+        // TODO solve this differently
+        this.socket = ioclient.connect(`http://localhost:${process.env.PORT || 3000}`);
+        console.log(this.socket)
         this.gameState = null;
 
         this.play = this.play.bind(this);
