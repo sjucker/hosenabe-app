@@ -5,7 +5,7 @@ import socketio from 'socket.io';
 import http from 'http';
 
 const APPPATH: string = 'client/build';
-const PORT: string | number = process.env.PORT || 3000; // TODO
+const PORT: string | number = process.env.PORT || 3000;
 
 // Create the server
 const app: express.Application = express();

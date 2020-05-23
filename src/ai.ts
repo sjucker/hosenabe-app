@@ -3,7 +3,7 @@ import * as gm from './game';
 import ioclient from 'socket.io-client';
 
 export class AIPlayerManager {
-    
+
     private aiPlayers: AIPlayer[];
 
     constructor() {
@@ -16,7 +16,7 @@ export class AIPlayerManager {
 
     private addPlayer(aiPlayer: AIPlayer): void {
         if (this.hasPlayer(aiPlayer.id)) {
-            throw new Error('Cannot add AI player; player with same ID already present.');
+            throw new Error(`Cannot add AI player; player with same ID already present: ${aiPlayer.id}`);
         }
         this.aiPlayers.push(aiPlayer);
     }
@@ -43,7 +43,7 @@ export class AIPlayerManager {
 interface ActionAndCards {
     // A game action + optional card info for the switch action
     action: gm.Action,
-    switchCards?: {playerCardName: string, tableCardName: string}
+    switchCards?: { playerCardName: string, tableCardName: string }
 }
 
 abstract class AIPlayer {
@@ -53,11 +53,11 @@ abstract class AIPlayer {
     public socket: SocketIOClient.Socket;
     public gameState: gm.GameState;
 
-    constructor(playerName:string, gameId: string) {
+    constructor(playerName: string, gameId: string) {
         this.id = null;
         this.gameId = gameId;
         this.name = playerName;
-        this.socket = ioclient.connect('http://localhost:3000');
+        this.socket = ioclient.connect(process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : undefined);
         this.gameState = null;
 
         this.play = this.play.bind(this);
@@ -75,7 +75,7 @@ abstract class AIPlayer {
                     this.id = message.playerId;
                     const joinMessage: api.JoinGameMessage = {playerId: this.id, gameId: this.gameId};
                     this.socket.emit('request join game', joinMessage);
-                } catch(e) {
+                } catch (e) {
                     console.log(e);
                 }
             } else {
@@ -85,7 +85,7 @@ abstract class AIPlayer {
         });
 
         this.socket.on('game update', (gameState: gm.GameState) => {
-            
+
             try {
                 // Update the game state
                 this.gameState = gameState;
@@ -114,7 +114,7 @@ abstract class AIPlayer {
                     }
 
                 }
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
         });
@@ -165,7 +165,7 @@ abstract class AIPlayer {
                 const switchAllMessage: api.PlayerIdMessage = {playerId: this.id};
                 this.socket.emit('request switch all', switchAllMessage);
                 break;
-        
+
             case gm.Action.Hosenaben:
                 const hosenabenMessage: api.PlayerIdMessage = {playerId: this.id};
                 this.socket.emit('request hosenaben', hosenabenMessage);
@@ -175,7 +175,7 @@ abstract class AIPlayer {
                 const feuerMessage: api.PlayerIdMessage = {playerId: this.id};
                 this.socket.emit('request feuer', feuerMessage);
                 break;
-            
+
             case gm.Action.Switch:
                 const switchMessage: api.SwitchMessage = {
                     playerId: this.id,
@@ -198,7 +198,7 @@ export class RandomAIPlayer extends AIPlayer {
     /*
     Implementation of AI Player that chooses actions randomly 
     */
-   
+
     public chooseAction(): ActionAndCards {
         // If player has special combo: plays it
         // Otherwise: chooses action stochastically, but never switch
@@ -251,7 +251,7 @@ export class DeterministicAIPlayer extends AIPlayer {
             case gm.Action.SwitchAll:
                 points = tableStack.analyzeHand().points;
                 break;
-        
+
             default:
                 // nothing, hosenaben, feuer, losen, chlopfen
                 points = handStack.analyzeHand().points;
@@ -260,9 +260,9 @@ export class DeterministicAIPlayer extends AIPlayer {
 
         return points;
     }
-   
+
     public chooseAction(): ActionAndCards {
-        
+
         // Some error checking.. if hand/table cards are missing, play nothing
         if (this.gameState.thisPlayerCards.length == 0) {
             return {action: gm.Action.Nothing};
@@ -303,12 +303,12 @@ export class DeterministicAIPlayer extends AIPlayer {
                         }
                     }
                     break;
-                
+
                 default:
                     actionCandidates.push({action: allowedAction});
                     let points: number = this.getPoints({action: allowedAction}, handStack, tableStack);
                     actionCandidatePoints.push(points);
-                    break; 
+                    break;
             }
         }
 
