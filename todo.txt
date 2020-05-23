@@ -1,0 +1,30 @@
+Deployment:
+-----------
+
+General Back-end
+----------------
+* Logging / tracking
+* Refactor API
+    * Only one message for all actions (e.g. 'request action') instead of one messgae per action ('request losen')
+      -> Less duplicate code and more readable error handling
+* Testing! Testing! Testing!
+
+
+Game Functionality
+-------------------
+* Loss on missed hosenaben
+* First player can switch cards
+* 'Private' games (via game key)
+
+
+General Front-end
+-----------------
+* Make the CSS mobile ready
+* Show 'you're the only player left' dialogue if all but one active player leave
+* Inactive players: Show empty hand instead of back-of-cards to inactive players
+* Player table in waiting area shows how long ago game was created
+* Make scorecard fancier (e.g. show special card combos, small card icons)
+* Refactor app:
+    * Move handling of server events to the app level.
+* Lobby: Show how many players in lobby, how many games ongoing
+* Rewrite React app in TypeScript
