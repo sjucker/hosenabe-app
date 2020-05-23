@@ -21,7 +21,7 @@
 
 # IntelliJ
 .idea
-hosenabe.iml
+*.iml
 
 npm-debug.log*
 yarn-debug.log*
