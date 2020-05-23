@@ -49,8 +49,9 @@ export class JoinableGamesTable extends React.Component {
                                         color="primary"
                                         fullWidth
                                         onClick={() => this.handleRowClick(row.gameId)}
+                                        disabled={!row.joinable}
                                     >
-                                        Biitrete
+                                        {row.joinable ? 'Biitrete' : 'Lauft scho'}
                                     </Button>
                                 </TableCell>
                             </TableRow>

@@ -86,18 +86,18 @@ export class API {
     private handleConnection(socket: socketio.Socket): void {
 
         // Name validation
-        socket.on('request name check', function(message: NameCheckMessage) {
+        socket.on('request name check', function (message: NameCheckMessage) {
             try {
                 const answer: gl.NameValidation = this.lobby.checkPlayerName(message.name);
                 socket.emit('response name check', answer);
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
         }.bind(this));
 
         // Add new player to lobby
-        socket.on('request player register', function(message: RegisterMessage) {
-        
+        socket.on('request player register', function (message: RegisterMessage) {
+
             try {
                 const player: gm.Player = new gm.Player(message.name, message.isHuman);
                 this.lobby.addPlayer(player, socket.id);
@@ -109,22 +109,22 @@ export class API {
                     playerName: player.name
                 };
                 socket.emit('response player register', registerResponse);
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
         }.bind(this));
 
         // Sends joinable games to requesting player
-        socket.on('request lobby update', function(message: PlayerIdMessage) {
+        socket.on('request lobby update', function (message: PlayerIdMessage) {
             try {
                 this.emitLobbyUpdate(socket);
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
         }.bind(this));
 
         // Player requests to start new game
-        socket.on('request new game', function(message: PlayerIdMessage) {
+        socket.on('request new game', function (message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -148,7 +148,7 @@ export class API {
         }.bind(this));
 
         // Player requests to join existing game
-        socket.on('request join game', function(message: JoinGameMessage) {
+        socket.on('request join game', function (message: JoinGameMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -156,24 +156,24 @@ export class API {
             }
 
             try {
-                if (!this.lobby.isPlayerInGame(message.playerId) && 
+                if (!this.lobby.isPlayerInGame(message.playerId) &&
                     this.lobby.hasGame(message.gameId)) {
                     this.lobby.addPlayerToGame(message.playerId, message.gameId);
-        
+
                     socket.join(message.gameId); // Adds player to socket.io room of this game
                     socket.leave('lobby');
-        
+
                     socket.emit('response join game', {}); // Let player know that they joined
                     this.emitLobbyUpdate(); // Send lobby update to everyone in lobby
                     this.emitGameUpdate(message.gameId); // Send update to everyone in game
                 }
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
         }.bind(this));
 
         // Player requests to add an AI player to their game
-        socket.on('request add ai', function(message: PlayerIdMessage) {
+        socket.on('request add ai', function (message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -186,16 +186,16 @@ export class API {
                     const lobbyPlayer: gl.LobbyPlayer = this.lobby.getLobbyPlayer(message.playerId);
                     const game: gm.Game = this.lobby.getGame(lobbyPlayer.gameId);
 
-                   // Spawn & add the AI player
-                   this.lobby.addAIPlayerToGame(game.id);
+                    // Spawn & add the AI player
+                    this.lobby.addAIPlayerToGame(game.id);
                 }
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
         }.bind(this))
 
         // Player requests update on the game they're currently in
-        socket.on('request game update', function(message: PlayerIdMessage) {
+        socket.on('request game update', function (message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -207,13 +207,13 @@ export class API {
                     const lobbyPlayer: gl.LobbyPlayer = this.lobby.getLobbyPlayer(message.playerId);
                     this.emitGameUpdate(lobbyPlayer.gameId, message.playerId);
                 }
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
         }.bind(this));
 
         // Player requests to exit game
-        socket.on('request game exit', function(message: PlayerIdMessage) {
+        socket.on('request game exit', function (message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -233,11 +233,11 @@ export class API {
                     socket.emit('response game exit', {}); // Let player know that they exited
                     this.emitLobbyUpdate();
                     if (this.lobby.hasGame(gameId)) { // bc game might have been auto removed when no players left
-                        this.emitGameUpdate(gameId); 
+                        this.emitGameUpdate(gameId);
                     }
 
                 }
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
         }.bind(this));
@@ -253,19 +253,19 @@ export class API {
                         this.lobby.removePlayerFromGame(playerId);
                         this.lobby.cleanUpGame(gameId);
                         if (this.lobby.hasGame(gameId)) { // bc game might have been auto removed when no players left
-                            this.emitGameUpdate(gameId); 
+                            this.emitGameUpdate(gameId);
                         }
                     }
                     this.lobby.removePlayer(playerId);
                     this.emitLobbyUpdate();
                 }
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
         }.bind(this));
 
         // Player requests to start game
-        socket.on('request game start', function(message: PlayerIdMessage) {
+        socket.on('request game start', function (message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -282,13 +282,13 @@ export class API {
                         this.emitLobbyUpdate();
                     }
                 }
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
         }.bind(this));
 
         // Player requests to take losen action
-        socket.on('request losen', function(message: PlayerIdMessage) {
+        socket.on('request losen', function (message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -304,13 +304,13 @@ export class API {
                         this.emitGameUpdate(game.id);
                     }
                 }
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
         }.bind(this));
 
         // Player requests to take chlopfen action
-        socket.on('request chlopfen', function(message: PlayerIdMessage) {
+        socket.on('request chlopfen', function (message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -326,13 +326,13 @@ export class API {
                         this.emitGameUpdate(game.id);
                     }
                 }
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
         }.bind(this));
-    
+
         // Player requests to switch all cards
-        socket.on('request switch all', function(message: PlayerIdMessage) {
+        socket.on('request switch all', function (message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -348,13 +348,13 @@ export class API {
                         this.emitGameUpdate(game.id);
                     }
                 }
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
         }.bind(this));
 
         // Player requests to switch two cards
-        socket.on('request switch', function(message: SwitchMessage) {
+        socket.on('request switch', function (message: SwitchMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -370,13 +370,13 @@ export class API {
                         this.emitGameUpdate(game.id);
                     }
                 }
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
         }.bind(this));
 
         // Player requests to take hosenaben action
-        socket.on('request hosenaben', function(message: PlayerIdMessage) {
+        socket.on('request hosenaben', function (message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -392,13 +392,13 @@ export class API {
                         this.emitGameUpdate(game.id);
                     }
                 }
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
         }.bind(this));
 
         // Player requests to take feuer action
-        socket.on('request feuer', function(message: PlayerIdMessage) {
+        socket.on('request feuer', function (message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -414,13 +414,13 @@ export class API {
                         this.emitGameUpdate(game.id);
                     }
                 }
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
         }.bind(this));
 
         // Player requests to start round
-        socket.on('request round start', function(message: PlayerIdMessage) {
+        socket.on('request round start', function (message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -436,7 +436,7 @@ export class API {
                         this.emitGameUpdate(game.id);
                     }
                 }
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
         }.bind(this));
