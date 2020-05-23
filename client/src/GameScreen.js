@@ -13,8 +13,31 @@ import TableBody from "@material-ui/core/TableBody";
 import TableContainer from "@material-ui/core/TableContainer";
 import Box from "@material-ui/core/Box";
 import {GameLog} from "./GameLog";
+import Paper from "@material-ui/core/Paper";
+import TextField from "@material-ui/core/TextField";
+import IconButton from "@material-ui/core/IconButton";
+import SendIcon from '@material-ui/icons/Send';
 
 export class GameScreen extends React.Component {
+
+    constructor(props) {
+        super(props);
+
+        this.state = {trashTalkMessage: ''};
+
+        this.handleTrashTalkChange = this.handleTrashTalkChange.bind(this);
+        this.handleTrashTalkSubmit = this.handleTrashTalkSubmit.bind(this);
+    }
+
+    handleTrashTalkChange(event) {
+        this.setState({trashTalkMessage: event.target.value});
+    }
+
+    handleTrashTalkSubmit(event) {
+        this.props.makeTrashTalk(this.state.trashTalkMessage);
+        this.setState({trashTalkMessage: ''})
+        event.preventDefault();
+    }
 
     render() {
 
@@ -117,6 +140,32 @@ export class GameScreen extends React.Component {
                     </Grid>
                 </Grid>
                 {scorecardElement}
+                <Box
+                    mt={2}
+                >
+                    <Paper
+                        style={{padding: '0.5rem'}}
+                        component="form"
+                        noValidate
+                        autoComplete="off"
+                        onSubmit={this.handleTrashTalkSubmit}
+                    >
+                        <Box
+                            display="flex"
+                        >
+                            <TextField
+                                label="Trash Talk"
+                                value={this.state.trashTalkMessage}
+                                onChange={this.handleTrashTalkChange}
+                                style={{flexGrow: 1}}
+                                inputProps={{maxLength: 100}}
+                            />
+                            <IconButton type="submit">
+                                <SendIcon/>
+                            </IconButton>
+                        </Box>
+                    </Paper>
+                </Box>
                 <Box
                     mt={2}
                     mb={2}

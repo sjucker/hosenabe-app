@@ -29,7 +29,8 @@ export class Game extends React.Component {
             scorecardInfo: {display: false, scorecard: null},
             logEntries: [],
             myTurnInfoOpen: false,
-            isChlopfState: false
+            isChlopfState: false,
+            trashTalkMessage: null
         };
 
         this.handleGameStateUpdate = this.handleGameStateUpdate.bind(this);
@@ -37,6 +38,8 @@ export class Game extends React.Component {
         this.handleServerError = this.handleServerError.bind(this);
         this.handleMenuButtonClick = this.handleMenuButtonClick.bind(this);
         this.handleCardClick = this.handleCardClick.bind(this);
+        this.trashTalk = this.trashTalk.bind(this);
+        this.handleTrashTalk = this.handleTrashTalk.bind(this);
     }
 
     componentDidMount() {
@@ -49,6 +52,8 @@ export class Game extends React.Component {
         /* Set the callback for receiving game exit response */
         api.setCallbackOnMessage('response game exit', this.handleGameExitResponse);
 
+        api.setCallbackOnMessage('trashtalk', this.handleTrashTalk)
+
         /* Request game state update from the server*/
         const message = {playerId: this.props.playerInfo.id};
         api.emitToServer('request game update', message);
@@ -58,6 +63,7 @@ export class Game extends React.Component {
         api.removeCallbackOnMessage('game update', this.handleGameStateUpdate);
         api.removeCallbackOnMessage('server error', this.handleGameStateUpdate);
         api.removeCallbackOnMessage('response game exit', this.handleGameExitResponse);
+        api.removeCallbackOnMessage('trashtalk', this.handleTrashTalk);
     }
 
     handleServerError(message) {
@@ -149,6 +155,10 @@ export class Game extends React.Component {
         this.props.setGameJoined(false);
     }
 
+    handleTrashTalk(message) {
+        this.setState({trashTalkMessage: message})
+    }
+
     handleMenuButtonClick(buttonId) {
 
         if (buttonId === 'exitGame') {
@@ -205,6 +215,13 @@ export class Game extends React.Component {
                 }
             });
         }
+    }
+
+    trashTalk(message) {
+        api.emitToServer('make trashtalk', {
+            playerId: this.props.playerInfo.id,
+            message: message
+        });
     }
 
     handleCardClick(clickedCard) {
@@ -276,6 +293,7 @@ export class Game extends React.Component {
                         handleMenuButtonClick={this.handleMenuButtonClick}
                         handleCardClick={this.handleCardClick}
                         isChlopfState={this.state.isChlopfState}
+                        makeTrashTalk={this.trashTalk}
                     />
                     <Snackbar
                         anchorOrigin={{
@@ -289,6 +307,25 @@ export class Game extends React.Component {
                         }}
                     >
                         <Alert severity="success" variant="filled">Du bisch dra</Alert>
+                    </Snackbar>
+                    <Snackbar
+                        anchorOrigin={{
+                            vertical: 'bottom',
+                            horizontal: 'center',
+                        }}
+                        autoHideDuration={4000}
+                        open={this.state.trashTalkMessage != null}
+                        onClose={() => {
+                            this.setState({trashTalkMessage: null})
+                        }}
+                    >
+                        <Alert
+                            severity="error"
+                            variant="filled"
+                            icon={false}
+                        >
+                            {this.state.trashTalkMessage}
+                        </Alert>
                     </Snackbar>
                 </div>
             );
