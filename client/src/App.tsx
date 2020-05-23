@@ -21,18 +21,39 @@ import List from "@material-ui/core/List";
 
 // Helper functions
 
-export function arrayContentEqual(array1, array2) {
+export function arrayContentEqual(array1: any[], array2: any[]) {
     return (array1.length === array2.length) && (array1.every(val => array2.includes(val)));
 }
 
-// App
-class App extends React.Component {
+export interface AppProps {
 
-    constructor(props) {
+}
+
+export interface AppState {
+    playerInfo: PlayerInfo,
+    hasPlayerRegistered: boolean,
+    hasPlayerJoinedGame: boolean,
+    hasGameStarted: boolean,
+    drawerOpen: boolean,
+    useDarkMode: boolean
+}
+
+export interface PlayerInfo {
+    id: string,
+    name: string
+}
+
+// App
+class App extends React.Component<AppProps, AppState> {
+
+    constructor(props: AppProps) {
         super(props);
 
         this.state = {
-            playerInfo: {},
+            playerInfo: {
+                id: '?',
+                name: '?'
+            },
             hasPlayerRegistered: false,
             hasPlayerJoinedGame: false,
             hasGameStarted: false,
@@ -44,7 +65,7 @@ class App extends React.Component {
         this.setGameJoined = this.setGameJoined.bind(this);
     }
 
-    setPlayerInfo(isRegistered, playerInfo = {}) {
+    setPlayerInfo(isRegistered: boolean, playerInfo: PlayerInfo) {
         this.setState({
             playerInfo: playerInfo,
             hasPlayerRegistered: isRegistered
@@ -58,7 +79,7 @@ class App extends React.Component {
         }
     }
 
-    setGameJoined(value) {
+    setGameJoined(value: boolean) {
         this.setState({
             hasPlayerJoinedGame: value
         });
@@ -68,7 +89,7 @@ class App extends React.Component {
 
         let playerName;
         if (this.state.hasPlayerRegistered) {
-            playerName = ` (${this.state.playerInfo.name})`;
+            playerName = ` (${this.state.playerInfo?.name})`;
         } else {
             playerName = '';
         }

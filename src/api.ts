@@ -103,7 +103,7 @@ export class API {
                 this.lobby.addPlayer(player, socket.id);
 
                 socket.join('lobby'); // Adds player to lobby socket.io room
-                const registerResponse = {
+                const registerResponse: RegisterResponse = {
                     success: true,
                     playerId: player.id,
                     playerName: player.name

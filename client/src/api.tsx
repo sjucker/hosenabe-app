@@ -2,17 +2,17 @@ import openSocket from 'socket.io-client';
 
 // for development environment (when using 'npm run start') connect to separate hosen-server running on port 3000
 // otherwise (i.e., production), we do not specify a hostname -> connects to host serving the site
-const socket = openSocket(process.env.NODE_ENV === 'development' ? 'localhost:3000' : undefined);
+const socket = process.env.NODE_ENV === 'development' ? openSocket('localhost:3000') : openSocket();
 
-function setCallbackOnMessage(message, callbackFunction) {
+function setCallbackOnMessage(message: string, callbackFunction: Function) {
     socket.on(message, callbackFunction);
 }
 
-function removeCallbackOnMessage(message, callbackFunction) {
+function removeCallbackOnMessage(message: string, callbackFunction: Function) {
     socket.off(message, callbackFunction);
 }
 
-function emitToServer(messageName, messageContent) {
+function emitToServer(messageName: string, ...messageContent: any[]) {
     socket.emit(messageName, messageContent);
 }
 

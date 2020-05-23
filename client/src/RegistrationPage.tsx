@@ -4,10 +4,21 @@ import Container from "@material-ui/core/Container";
 import Typography from "@material-ui/core/Typography";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
+import {NameValidation} from "../../src/gameLobby";
+import {RegisterResponse} from "../../src/api";
 
+type RegistrationPageProps = {
+    setPlayerInfo: Function
+}
 
-export class RegistrationPage extends React.Component {
-    constructor(props) {
+type RegistrationPageState = {
+    value: string,
+    isNameValid: boolean,
+    formFeedback: string
+}
+
+export class RegistrationPage extends React.Component<RegistrationPageProps, RegistrationPageState> {
+    constructor(props: RegistrationPageProps) {
         super(props);
 
         this.state = {
@@ -35,18 +46,18 @@ export class RegistrationPage extends React.Component {
         api.removeCallbackOnMessage('response player register', this.handleRegisterResponse);
     }
 
-    handleNameValidationMessage(message) {
+    handleNameValidationMessage(message: NameValidation) {
         this.setState({
             isNameValid: message.isValid,
             formFeedback: message.isValidReason
         });
     }
 
-    handleRegisterResponse(message) {
+    handleRegisterResponse(message: RegisterResponse) {
         if (message.success) {
 
             // Registration successful!
-            var playerInfo = {
+            let playerInfo = {
                 id: message.playerId,
                 name: message.playerName
             };
@@ -56,7 +67,7 @@ export class RegistrationPage extends React.Component {
         }
     }
 
-    handleChange(event) {
+    handleChange(event: any) { // TODO
 
         const newValue = event.target.value;
         const checkNameMessage = {name: newValue};
@@ -68,7 +79,7 @@ export class RegistrationPage extends React.Component {
 
     }
 
-    handleSubmit(event) {
+    handleSubmit(event: any) { // TODO
         if (this.state.isNameValid) {
             const registerMessage = {name: this.state.value, isHuman: true};
             api.emitToServer('request player register', registerMessage);

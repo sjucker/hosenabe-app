@@ -103,10 +103,10 @@ abstract class AIPlayer {
                         // Start new round if no active human players left
                         // and this AI player is the first one
                         const humanPlayerIds: string[] = this.gameState
-                            .playerOverview.players.filter(pl => pl.isHuman && pl.tokens > 0)
+                            .playerOverviews.players.filter(pl => pl.isHuman && pl.tokens > 0)
                             .map(pl => pl.playerId);
                         const firstAIPlayerId: string = this.gameState
-                            .playerOverview.players.filter(pl => !pl.isHuman)
+                            .playerOverviews.players.filter(pl => !pl.isHuman)
                             .map(pl => pl.playerId)[0];
                         if (humanPlayerIds.length == 0 && this.id == firstAIPlayerId) {
                             // Request round start with some delay

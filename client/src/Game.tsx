@@ -3,12 +3,47 @@ import SimpleTable from "./SimpleTable";
 import api from "./api";
 import {GameWaitingArea} from "./GameWaitingArea";
 import {GameScreen} from "./GameScreen";
-import {arrayContentEqual} from "./App";
+import {arrayContentEqual, PlayerInfo} from "./App";
 import Snackbar from "@material-ui/core/Snackbar";
 import Alert from "@material-ui/lab/Alert";
+import {PlayerIdMessage} from "../../src/api";
+import {GameState, LogMessage, PlayerOverview, RoundScorecard} from "../../src/game";
 
-export class Game extends React.Component {
-    constructor(props) {
+type GameComponentProps = {
+    setPlayerInfo: Function,
+    playerInfo: PlayerInfo,
+    setGameJoined: Function
+}
+
+export interface ScoreCardInfo {
+    display: boolean,
+    scorecard?: RoundScorecard
+}
+
+type GameComponentState = {
+    isGameStarted: boolean,
+    isRoundOngoing: boolean,
+    isRoundEnded: boolean,
+    isGameEnded: boolean,
+    currentRound: number,
+    players: PlayerOverview[]
+    playerInfoTable: SimpleTable,
+    currentPlayerId: string,
+    myTurn: boolean,
+    myTokens: number,
+    allowedActions: string[],
+    tableCardNames: string[],
+    playerCardNames: string[],
+    tableCardsHighlighted: boolean[],
+    playerCardsHighlighted: boolean[],
+    scorecardInfo: ScoreCardInfo,
+    logEntries: LogMessage[],
+    myTurnInfoOpen: boolean,
+    isChlopfState: boolean
+}
+
+export class Game extends React.Component<GameComponentProps, GameComponentState> {
+    constructor(props: GameComponentProps) {
         super(props);
 
         this.state = {
@@ -18,7 +53,8 @@ export class Game extends React.Component {
             isGameEnded: false,
             currentRound: 0,
             playerInfoTable: new SimpleTable([]),
-            currentPlayerId: null,
+            players: [],
+            currentPlayerId: '',
             myTurn: false,
             myTokens: 3,
             allowedActions: [],
@@ -26,7 +62,7 @@ export class Game extends React.Component {
             playerCardNames: ['back', 'back', 'back'],
             tableCardsHighlighted: [false, false, false],
             playerCardsHighlighted: [false, false, false],
-            scorecardInfo: {display: false, scorecard: null},
+            scorecardInfo: {display: false},
             logEntries: [],
             myTurnInfoOpen: false,
             isChlopfState: false
@@ -50,7 +86,7 @@ export class Game extends React.Component {
         api.setCallbackOnMessage('response game exit', this.handleGameExitResponse);
 
         /* Request game state update from the server*/
-        const message = {playerId: this.props.playerInfo.id};
+        const message: PlayerIdMessage = {playerId: this.props.playerInfo!.id};
         api.emitToServer('request game update', message);
     }
 
@@ -60,7 +96,7 @@ export class Game extends React.Component {
         api.removeCallbackOnMessage('response game exit', this.handleGameExitResponse);
     }
 
-    handleServerError(message) {
+    handleServerError(message: any) { // TODO
         switch (message.type) {
             case 'player not found':
                 console.error('server did not find player - resetting app.');
@@ -71,12 +107,12 @@ export class Game extends React.Component {
         }
     }
 
-    handleGameStateUpdate(gameState) {
+    handleGameStateUpdate(gameState: GameState) {
 
         /* Make a simple table with all the player info */
         const playerInfoTable = new SimpleTable(['id', 'Name', 'Isätz', 'turn']);
-        for (let i = 0; i < gameState.playerOverview.players.length; i++) {
-            const pl = gameState.playerOverview.players[i];
+        for (let i = 0; i < gameState.playerOverviews.length; i++) {
+            const pl = gameState.playerOverviews[i];
             const turn = (gameState.currentPlayerId === pl.playerId);
             playerInfoTable.addRow([pl.playerId, pl.playerName, pl.tokens, turn]);
         }
@@ -114,7 +150,7 @@ export class Game extends React.Component {
         this.setState({isChlopfState: gameState.isChlopfState})
 
         /* Update player's tokens */
-        const myTokens = gameState.playerOverview.players.find(pl => pl.playerId === this.props.playerInfo.id).tokens;
+        const myTokens = gameState.playerOverviews.find(pl => pl.playerId === this.props.playerInfo.id)!.tokens;
         this.setState({myTokens: myTokens});
 
         /* If the round just ended: update the scorecard and display it */
@@ -137,7 +173,7 @@ export class Game extends React.Component {
             isRoundOngoing: gameState.isRoundOngoing,
             isRoundEnded: gameState.isRoundEnded,
             currentRound: gameState.currentRound,
-            players: gameState.playerOverview.players,
+            players: gameState.playerOverviews,
             currentPlayerId: gameState.currentPlayerId,
             allowedActions: gameState.allowedActions,
             logEntries: gameState.log.reverse()

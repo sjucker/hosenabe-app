@@ -5,15 +5,26 @@ import Container from "@material-ui/core/Container";
 import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
 import Box from "@material-ui/core/Box";
+import {PlayerInfo} from "./App";
+import {PlayerIdMessage} from "../../src/api";
 
-export class GameLobby extends React.Component {
+type GameLobbyProps = {
+    setPlayerInfo: Function,
+    playerInfo?: PlayerInfo,
+    setGameJoined: Function
+}
 
-    constructor(props) {
+type GameLobbyState = {
+    joinableGames: any[], // TODO
+}
+
+export class GameLobby extends React.Component<GameLobbyProps, GameLobbyState> {
+
+    constructor(props: GameLobbyProps) {
         super(props);
 
         this.state = {
-            joinableGames: [],
-            selectedGameId: null
+            joinableGames: []
         }
 
         this.handleLobbyUpdate = this.handleLobbyUpdate.bind(this);
@@ -31,7 +42,7 @@ export class GameLobby extends React.Component {
         api.setCallbackOnMessage('server error', this.handleServerError);
 
         /* Request lobby update from the server*/
-        const message = {playerId: this.props.playerInfo.id};
+        const message: PlayerIdMessage = {playerId: this.props.playerInfo!.id};
         api.emitToServer('request lobby update', message);
 
         /* Set the callback for successfully joining game*/

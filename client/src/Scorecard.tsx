@@ -11,6 +11,8 @@ import TableBody from "@material-ui/core/TableBody";
 import Table from "@material-ui/core/Table";
 import TableContainer from "@material-ui/core/TableContainer";
 
+type ScorecardProps = {}
+
 export class Scorecard extends React.Component {
 
     render() {

@@ -365,12 +365,10 @@ export interface RoundScorecard {
 }
 
 export interface PlayerOverview {
-    readonly players: {
-        playerId: string,
-        playerName: string,
-        isHuman: boolean,
-        tokens: number
-    }[]
+    playerId: string,
+    playerName: string,
+    isHuman: boolean,
+    tokens: number
 }
 
 export interface GameState {
@@ -383,7 +381,7 @@ export interface GameState {
     readonly tableCards: Card[],
 
     // Players
-    readonly playerOverview: PlayerOverview,
+    readonly playerOverviews: PlayerOverview[],
 
     // Allowed actions
     readonly allowedActions: Action[],
@@ -672,16 +670,15 @@ export class Game {
             throw new RangeError('Player not found.');
         }
 
-        const playerOverview: PlayerOverview = {
-            players: this.players.map(function (pl) {
+        const playerOverview: PlayerOverview[] =
+            this.players.map(function (pl) {
                 return {
                     playerId: pl.id,
                     playerName: pl.name,
                     isHuman: pl.isHuman,
                     tokens: pl.getTokens()
                 }
-            })
-        };
+            });
 
         const gameState: GameState = {
             gameId: this.id,
@@ -691,7 +688,7 @@ export class Game {
             thisPlayerCards: this.getPlayer(playerId).hand.getCards(),
             tableCards: this.getTable().getCards(),
 
-            playerOverview: playerOverview,
+            playerOverviews: playerOverview,
             allowedActions: this.getAllowedActions(playerId),
             isGameStarted: this.isGameStarted,
             isGameEnded: this.isGameEnded,
