@@ -11,11 +11,11 @@ function makeId(length: number): string {
 
 // A single playing card
 export enum CardSuit {
-    Schilten = 'Schilten', 
-    Eicheln = 'Eicheln', 
-    Rosen = 'Rosen', 
+    Schilten = 'Schilten',
+    Eicheln = 'Eicheln',
+    Rosen = 'Rosen',
     Schellen = 'Schellen'
-};
+}
 
 export enum CardRank {
     Sechs = 'Sechs',
@@ -27,15 +27,15 @@ export enum CardRank {
     Ober = 'Ober',
     Koenig = 'Koenig',
     As = 'As'
-};
+}
 
 export class Card {
-    
+
     readonly suit: CardSuit;
     readonly rank: CardRank;
-    readonly name:string;
-    
-    constructor (suit: CardSuit, rank: CardRank) {
+    readonly name: string;
+
+    constructor(suit: CardSuit, rank: CardRank) {
         this.suit = suit;
         this.rank = rank;
         this.name = suit.concat(rank);
@@ -47,7 +47,7 @@ export class Card {
 
     public getPoints(): number {
         let points: number;
-        switch(this.rank) {
+        switch (this.rank) {
             case CardRank.Sechs:
                 points = 6;
                 break;
@@ -65,7 +65,7 @@ export class Card {
                 break;
             case CardRank.Under:
                 points = 10;
-                 break;
+                break;
             case CardRank.Ober:
                 points = 10;
                 break;
@@ -88,7 +88,7 @@ export class CardStack {
     constructor(cards: Card[]) {
         this.cards = cards;
     };
-    
+
     public drawCard(): Card {
         // Samples, removes, and returns a random card
         if (this.cards.length == 0) {
@@ -236,7 +236,7 @@ export class HandStack extends CardStack {
                 points: 0,
                 hasHosenaben: false,
                 hasFeuer: false
-            }; 
+            };
         }
 
         // Analyze cards and establish regular points
@@ -249,7 +249,7 @@ export class HandStack extends CardStack {
                 suits.push(card.suit);
                 suitPoints.push(card.getPoints());
             } else {
-                const idx: number = suits.findIndex(s => s===card.suit);
+                const idx: number = suits.findIndex(s => s === card.suit);
                 suitPoints[idx] = suitPoints[idx] + card.getPoints();
             }
             if (!ranks.includes(card.rank)) {
@@ -297,16 +297,16 @@ export class Player {
     public hand: HandStack;
 
     constructor(
-        name: string, 
+        name: string,
         isHuman: boolean,
         tokens: number = 3,
         idLength: number = 8
-        ) {
-            this.name = name;
-            this.isHuman = isHuman;
-            this.tokens = tokens;
-            this.hand = new HandStack();
-            this.id = makeId(idLength);
+    ) {
+        this.name = name;
+        this.isHuman = isHuman;
+        this.tokens = tokens;
+        this.hand = new HandStack();
+        this.id = makeId(idLength);
     }
 
     public getTokens(): number {
@@ -350,7 +350,7 @@ export interface PlayerScorecard {
     readonly name: string,
     readonly tokens: number,
     readonly tokensDiff: number,
-    readonly points:number,
+    readonly points: number,
     readonly hasHosenaben: boolean,
     readonly hasFeuer: boolean,
     readonly handCardNames: string[]
@@ -366,21 +366,22 @@ export interface RoundScorecard {
 
 export interface PlayerOverview {
     readonly players: {
-        playerId: string, 
+        playerId: string,
         playerName: string,
         isHuman: boolean,
-        tokens: number}[]
+        tokens: number
+    }[]
 }
 
 export interface GameState {
 
     readonly gameId: string,
     readonly thisPlayerId: string,
-    
+
     // Cards
     readonly thisPlayerCards: Card[],
     readonly tableCards: Card[],
-    
+
     // Players
     readonly playerOverview: PlayerOverview,
 
@@ -406,9 +407,9 @@ export interface GameState {
 }
 
 export class Game {
-    
+
     readonly id: string;
-    
+
     private deck: CardStack;
     private table: CardStack;
     private players: Player[];
@@ -430,7 +431,7 @@ export class Game {
 
     constructor(player: Player, idLength: number = 8) {
         this.id = makeId(idLength);
-        
+
         // Cards
         this.deck = new JassDeck();
         this.table = new CardStack([]);
@@ -486,12 +487,12 @@ export class Game {
         return !this.isLosenLegal();
     }
 
-    private addLogMessage(message:string, playerId: string = null): void {
+    private addLogMessage(message: string, playerId: string = null): void {
         let playerName = null;
         if (playerId != null) {
             playerName = this.getPlayerName(playerId);
         }
-        this.log.push({playerId: playerId, playerName: playerName, message:message});
+        this.log.push({playerId: playerId, playerName: playerName, message: message});
     }
 
     // Player controls
@@ -622,7 +623,7 @@ export class Game {
             if (this.currentPlayerId == playerId) {
                 // These actions only allowed if it's their turn
                 actions.push(
-                    Action.Switch, 
+                    Action.Switch,
                     Action.SwitchAll
                 );
                 if (this.isLosenLegal()) {
@@ -635,7 +636,7 @@ export class Game {
                 // Player can only play 'nothing' if it isn't their turn..
                 // or if no cards have been distributed (see below)
                 // This is only relevant for AI player
-                actions.push(Action.Nothing); 
+                actions.push(Action.Nothing);
             }
         } else {
             actions.push(Action.Nothing);
@@ -672,12 +673,13 @@ export class Game {
         }
 
         const playerOverview: PlayerOverview = {
-            players: this.players.map(function(pl) {
+            players: this.players.map(function (pl) {
                 return {
-                    playerId: pl.id, 
-                    playerName: pl.name, 
+                    playerId: pl.id,
+                    playerName: pl.name,
                     isHuman: pl.isHuman,
-                    tokens: pl.getTokens()}
+                    tokens: pl.getTokens()
+                }
             })
         };
 
@@ -714,8 +716,8 @@ export class Game {
     public startGame(): void {
         if (this.isGameStarted) {
             throw new Error('Game already started.');
-        } 
-        
+        }
+
         this.isGameStarted = true;
         this.startRound();
     }
@@ -744,10 +746,10 @@ export class Game {
         this.table.addCards(this.drawFromDeck(3));
 
         // Set first player
-        this.currentPlayerId = this.currentStartingPlayerId; 
+        this.currentPlayerId = this.currentStartingPlayerId;
 
         // Log message
-        this.addLogMessage(`Rundi ${this.currentRound} hät agfange.`);
+        this.addLogMessage(`Rundi ${this.currentRound + 1} hät agfange.`);
     }
 
     public takeActionChlopf(playerId: string): void {
@@ -830,10 +832,10 @@ export class Game {
         let cardString: string = '';
         const cardNames = this.table.getCardNames();
         for (let i = 0; i < cardNames.length; i++) {
-            switch(i) {
-                case 0: 
+            switch (i) {
+                case 0:
                     break;
-                case 1: 
+                case 1:
                     cardString = cardString.concat(', ');
                     break;
                 case 2:
@@ -923,7 +925,7 @@ export class Game {
         if (idx + 1 == this.players.length) {
             retVal = this.players[0].id;
         } else {
-            retVal = this.players[idx+1].id;
+            retVal = this.players[idx + 1].id;
         }
         return retVal;
     }
@@ -936,7 +938,7 @@ export class Game {
             if (idx + 1 == activePlayers.length) {
                 this.currentPlayerId = activePlayers[0].id;
             } else {
-                this.currentPlayerId = activePlayers[idx+1].id;
+                this.currentPlayerId = activePlayers[idx + 1].id;
             }
         }
     }
@@ -957,7 +959,7 @@ export class Game {
         const activePlayers: Player[] = this.getActivePlayers();
 
         // Log
-        this.addLogMessage(`Rundi ${this.currentRound} isch fertig.`);
+        this.addLogMessage(`Rundi ${this.currentRound + 1} isch fertig.`);
 
         // Count points
         let points: number[] = [];
