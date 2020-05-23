@@ -37,6 +37,11 @@ export interface SwitchMessage {
     tableCardName: string
 }
 
+export interface TrashTalk {
+    playerId: string,
+    message: string
+}
+
 export class API {
 
     private lobby: gl.Lobby;
@@ -76,6 +81,19 @@ export class API {
             const socketId: string = this.lobby.getLobbyPlayer(playerId).socketId;
             const gameState: gm.GameState = game.getGameState(playerId);
             this.io.to(socketId).emit('game update', gameState);
+        }
+    }
+
+    private emitTrashTalk(gameId: string, playerId: string, message: string) {
+        const game: gm.Game = this.lobby.getGame(gameId);
+        const player = this.lobby.getLobbyPlayer(playerId);
+
+        const trashTalkMessage = `${player.player.name}: "${message}"`;
+        console.log(trashTalkMessage);
+
+        for (const id of game.getPlayerIds()) {
+            const socketId: string = this.lobby.getLobbyPlayer(id).socketId;
+            this.io.to(socketId).emit('trashtalk', trashTalkMessage);
         }
     }
 
@@ -440,7 +458,25 @@ export class API {
                 console.log(e);
             }
         }.bind(this));
+
+        socket.on('make trashtalk', function (trashTalk: TrashTalk) {
+
+            if (!this.lobby.hasPlayer(trashTalk.playerId)) {
+                this.emitPlayerNotFoundError(socket);
+                return;
+            }
+
+            try {
+                if (this.lobby.isPlayerInGame(trashTalk.playerId)) {
+                    const gameId = this.lobby.getLobbyPlayer(trashTalk.playerId).gameId;
+                    this.emitTrashTalk(gameId, trashTalk.playerId, trashTalk.message);
+                }
+            } catch (e) {
+                console.log(e);
+            }
+        }.bind(this))
     }
+
 
     public listen() {
         this.io.on('connection', this.handleConnection);
