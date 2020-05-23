@@ -2,8 +2,8 @@ import * as gm from "./game";
 import * as ai from "./ai";
 
 // ä ö ü
-const AI_NAME_CANDIDATES = ['Trudi', 'Fritzli', 'Köbi', 'Ruedi', 
-                            'Hanspi', 'Lotti', 'Monika', 'Alain', 
+const AI_NAME_CANDIDATES = ['Trudi', 'Fritzli', 'Köbi', 'Ruedi',
+                            'Hanspi', 'Lotti', 'Monika', 'Alain',
                             'Hansli', 'Ursli', 'Chaschpi'];
 
 export interface LobbyPlayer {
@@ -22,15 +22,16 @@ export interface GameInfo {
     gameId: string,
     hostPlayerId: string,
     hostPlayerName: string,
-    nPlayers: number
+    nPlayers: number,
+    joinable: boolean
 }
 
 // Game Lobby
 export class Lobby {
-    
+
     private lobbyPlayers: LobbyPlayer[];
     private games: gm.Game[];
-    private aiManager: ai.AIPlayerManager; 
+    private aiManager: ai.AIPlayerManager;
 
     constructor() {
         this.lobbyPlayers = [];
@@ -59,7 +60,7 @@ export class Lobby {
             isValid: isValid,
             isValidReason: isValidReason
         };
-        
+
         return validation;
     }
 
@@ -165,15 +166,15 @@ export class Lobby {
     }
 
     public getJoinableGames(): GameInfo[] {
-        const joinableGames: GameInfo[] = this.games.filter(gm => gm.isGameJoinable()).map(function(gm) {
+        return this.games.map(game => {
             return {
-                gameId: gm.id, 
-                hostPlayerId: gm.getPlayerIds()[0], 
-                hostPlayerName: gm.getPlayerNames()[0],
-                nPlayers: gm.getNPlayers()
+                gameId: game.id,
+                hostPlayerId: game.getPlayerIds()[0],
+                hostPlayerName: game.getPlayerNames()[0],
+                nPlayers: game.getNPlayers(),
+                joinable: game.isGameJoinable()
             };
         });
-        return joinableGames;
     }
 
     public getNGames(): number {
@@ -240,7 +241,7 @@ export class Lobby {
         lobbyPlayer.gameId = null;
     }
 
-    public cleanUpGame(gameId: string):void {
+    public cleanUpGame(gameId: string): void {
         // Removes game if empty
         const game: gm.Game = this.getGame(gameId);
         if (game.getNHumanPlayers() == 0) {
