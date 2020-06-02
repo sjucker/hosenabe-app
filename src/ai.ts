@@ -51,21 +51,20 @@ abstract class AIPlayer {
     public gameId: string;
     public name: string;
     public socket: SocketIOClient.Socket;
-    public gameState: gm.GameState;
+    public gameState?: gm.GameState;
 
     constructor(playerName: string, gameId: string) {
-        this.id = null;
+        this.id = '';
         this.gameId = gameId;
         this.name = playerName;
-        // TODO solve this differently
         this.socket = ioclient.connect(`http://localhost:${process.env.PORT || 3000}`);
-        this.gameState = null;
+        this.gameState = undefined;
 
         this.play = this.play.bind(this);
         this.requestRoundStart = this.requestRoundStart.bind(this);
     };
 
-    private getRandomDelay(): number {
+    private static getRandomDelay(): number {
         return Math.random() * 2000 + 1000;
     }
 
@@ -95,7 +94,7 @@ abstract class AIPlayer {
                 if (this.gameState.isRoundOngoing) {
 
                     // Play action with some random delay
-                    setTimeout(this.play, this.getRandomDelay());
+                    setTimeout(this.play, AIPlayer.getRandomDelay());
 
                 } else {
 
@@ -110,7 +109,7 @@ abstract class AIPlayer {
                             .map(pl => pl.playerId)[0];
                         if (humanPlayerIds.length == 0 && this.id == firstAIPlayerId) {
                             // Request round start with some delay
-                            setTimeout(this.requestRoundStart, this.getRandomDelay());
+                            setTimeout(this.requestRoundStart, AIPlayer.getRandomDelay());
                         }
                     }
 
@@ -139,7 +138,7 @@ abstract class AIPlayer {
     private play(): void {
 
         // First check whether any actions are allowed at all
-        const allowedActions: gm.Action[] = this.gameState.allowedActions;
+        const allowedActions: gm.Action[] = this.gameState!.allowedActions;
         if (allowedActions.length == 0) {
             return;
         }
@@ -180,8 +179,8 @@ abstract class AIPlayer {
             case gm.Action.Switch:
                 const switchMessage: api.SwitchMessage = {
                     playerId: this.id,
-                    playerCardName: actionAndCards.switchCards.playerCardName,
-                    tableCardName: actionAndCards.switchCards.tableCardName
+                    playerCardName: actionAndCards.switchCards!.playerCardName,
+                    tableCardName: actionAndCards.switchCards!.tableCardName
                 };
                 this.socket.emit('request switch', switchMessage);
                 break;
@@ -204,7 +203,7 @@ export class RandomAIPlayer extends AIPlayer {
         // If player has special combo: plays it
         // Otherwise: chooses action stochastically, but never switch
 
-        const allowedActions: gm.Action[] = this.gameState.allowedActions;
+        const allowedActions: gm.Action[] = this.gameState!.allowedActions;
 
         if (allowedActions.includes(gm.Action.Feuer)) {
             return {action: gm.Action.Feuer};
@@ -233,12 +232,12 @@ export class DeterministicAIPlayer extends AIPlayer {
         let points: number;
         switch (actionAndCards.action) {
             case gm.Action.Switch:
-                const playerCardName: string = actionAndCards.switchCards.playerCardName;
+                const playerCardName: string = actionAndCards.switchCards!.playerCardName;
                 const handStackCards: gm.Card[] = handStack.getCards().slice();
                 const playerCardIdx: number = handStackCards.findIndex(pl => pl.name === playerCardName);
                 const playerCard: gm.Card = handStackCards.splice(playerCardIdx, 1)[0];
 
-                const tableCardName: string = actionAndCards.switchCards.tableCardName;
+                const tableCardName: string = actionAndCards.switchCards!.tableCardName;
                 const tableStackCards: gm.Card[] = tableStack.getCards().slice();
                 const tableCardIdx: number = tableStackCards.findIndex(pl => pl.name === tableCardName);
                 const tableCard: gm.Card = tableStackCards.splice(tableCardIdx, 1)[0];
@@ -265,24 +264,24 @@ export class DeterministicAIPlayer extends AIPlayer {
     public chooseAction(): ActionAndCards {
 
         // Some error checking.. if hand/table cards are missing, play nothing
-        if (this.gameState.thisPlayerCards.length == 0) {
+        if (this.gameState!.thisPlayerCards.length == 0) {
             return {action: gm.Action.Nothing};
         }
 
         // Turn hand- and table-cards into HandStack object (for point counting)
         const handStack: gm.HandStack = new gm.HandStack();
-        for (const card of this.gameState.thisPlayerCards) {
+        for (const card of this.gameState!.thisPlayerCards) {
             const _card: gm.Card = new gm.Card(card.suit, card.rank);
             handStack.addCard(_card);
         }
         const tableStack: gm.HandStack = new gm.HandStack();
-        for (const card of this.gameState.tableCards) {
+        for (const card of this.gameState!.tableCards) {
             const _card: gm.Card = new gm.Card(card.suit, card.rank);
             tableStack.addCard(_card);
         }
 
         // Make a list of all possible actions and record associated points\
-        const allowedActions: gm.Action[] = this.gameState.allowedActions;
+        const allowedActions: gm.Action[] = this.gameState!.allowedActions;
         const actionCandidates: ActionAndCards[] = [];
         const actionCandidatePoints: number[] = [];
         for (const allowedAction of allowedActions) {
@@ -323,8 +322,6 @@ export class DeterministicAIPlayer extends AIPlayer {
             }
         }
         const randIdx: number = Math.floor(Math.random() * bestActions.length);
-        const bestAction: ActionAndCards = bestActions[randIdx];
-
-        return bestAction;
+        return bestActions[randIdx];
     }
 }

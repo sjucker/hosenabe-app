@@ -3,8 +3,8 @@ import * as ai from "./ai";
 
 // ä ö ü
 const AI_NAME_CANDIDATES = ['Trudi', 'Fritzli', 'Köbi', 'Ruedi',
-                            'Hanspi', 'Lotti', 'Monika', 'Alain',
-                            'Hansli', 'Ursli', 'Chaschpi'];
+    'Hanspi', 'Lotti', 'Monika', 'Alain',
+    'Hansli', 'Ursli', 'Chaschpi'];
 
 export interface LobbyPlayer {
     player: gm.Player,
@@ -68,15 +68,19 @@ export class Lobby {
         return this.lobbyPlayers.some(lb => lb.player.id == playerId);
     }
 
-    public hasPlayerWithSocketId(socketId: string) {
+    public hasPlayerWithSocketId(socketId: string): boolean {
         return this.lobbyPlayers.some(lb => lb.socketId == socketId);
     }
 
-    public getLobbyPlayerBySocketId(socketId: string) {
+    public getLobbyPlayerBySocketId(socketId: string): LobbyPlayer {
         if (!this.hasPlayerWithSocketId(socketId)) {
             throw new RangeError('Player not found');
         }
-        return this.lobbyPlayers.find(lb => lb.socketId == socketId);
+        let find = this.lobbyPlayers.find(lb => lb.socketId == socketId);
+        if (find == null) {
+            throw new Error();
+        }
+        return find;
     }
 
     public addPlayer(player: gm.Player, socketId: string): void {
@@ -89,7 +93,7 @@ export class Lobby {
         const lobbyPlayer: LobbyPlayer = {
             player: player,
             isInGame: false,
-            gameId: null,
+            gameId: '',
             socketId: socketId
         }
         this.lobbyPlayers.push(lobbyPlayer);
@@ -99,7 +103,11 @@ export class Lobby {
         if (!this.hasPlayer(playerId)) {
             throw new RangeError('Player not found.');
         }
-        return this.lobbyPlayers.find(lb => lb.player.id == playerId);
+        let find = this.lobbyPlayers.find(lb => lb.player.id == playerId);
+        if (find == null) {
+            throw new Error();
+        }
+        return find;
     }
 
     public removePlayer(playerId: string): void {
@@ -132,7 +140,11 @@ export class Lobby {
         if (!this.hasGame) {
             throw new RangeError('Game not found.');
         }
-        return this.games.find(gm => gm.id == gameId);
+        let find = this.games.find(gm => gm.id == gameId);
+        if (find == null) {
+            throw new Error();
+        }
+        return find;
     }
 
     public removeGame(gameId: string): void {
@@ -238,7 +250,7 @@ export class Lobby {
         const game: gm.Game = this.getGame(lobbyPlayer.gameId);
         game.removePlayer(lobbyPlayer.player.id);
         lobbyPlayer.isInGame = false;
-        lobbyPlayer.gameId = null;
+        lobbyPlayer.gameId = '';
     }
 
     public cleanUpGame(gameId: string): void {

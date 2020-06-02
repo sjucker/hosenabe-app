@@ -172,7 +172,11 @@ export class CardStack {
         if (!this.hasCard(cardName)) {
             throw new RangeError('Card not found.');
         }
-        return this.cards.find(cr => cr.name == cardName).getPrintName();
+        let card = this.cards.find(cr => cr.name == cardName);
+        if (card == null) {
+            throw new Error();
+        }
+        return card.getPrintName();
     }
 }
 
@@ -340,8 +344,8 @@ export enum Action {
 }
 
 export interface LogMessage {
-    readonly playerId: string,
-    readonly playerName: string,
+    readonly playerId?: string,
+    readonly playerName?: string,
     readonly message: string
 }
 
@@ -487,12 +491,12 @@ export class Game {
         return !this.isLosenLegal();
     }
 
-    private addLogMessage(message: string, playerId: string = null): void {
+    private addLogMessage(message: string, playerId?: string): void {
         let playerName = null;
         if (playerId != null) {
             playerName = this.getPlayerName(playerId);
         }
-        this.log.push({playerId: playerId, playerName: playerName, message: message});
+        this.log.push(<LogMessage>{playerId: playerId, playerName: playerName, message: message});
     }
 
     // Player controls
@@ -542,7 +546,11 @@ export class Game {
         if (!this.hasPlayer(playerId)) {
             throw new RangeError('Player not found.');
         }
-        return this.players.find(pl => pl.id === playerId);
+        let find = this.players.find(pl => pl.id === playerId);
+        if (find == null) {
+            throw new Error();
+        }
+        return find;
     }
 
     public getActivePlayers(): Player[] {
@@ -947,7 +955,10 @@ export class Game {
         if (!this.hasPlayer(playerId)) {
             throw new RangeError('Player not found.');
         }
-        let player: Player = this.players.find(pl => pl.id == playerId);
+        let player = this.players.find(pl => pl.id == playerId);
+        if (player == null) {
+            throw new Error();
+        }
         player.setTokens(player.getTokens() + tokensDelta);
     }
 
@@ -975,7 +986,7 @@ export class Game {
             const handValue: HandValue = player.analyzeHand();
             const cardNames: string[] = player.hand.getCardNames();
 
-            let tokensDiff: number;
+            let tokensDiff = 0;
             if (reason == GameEndReason.Chlopf || reason == GameEndReason.Hosenaben) {
                 tokensDiff = (handValue.points == minPoints) ? -1 : 0;
             } else if (reason == GameEndReason.Feuer) {
@@ -1014,7 +1025,7 @@ export class Game {
         this.deck.addCards(cards);
 
         // Unset the current player
-        this.currentPlayerId = null;
+        this.currentPlayerId = '';
 
         // Set the player starting the next round
         let currentIdx = this.players.findIndex(pl => pl.id == this.currentStartingPlayerId);

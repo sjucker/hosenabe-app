@@ -54,20 +54,20 @@ export class API {
         this.handleConnection = this.handleConnection.bind(this);
     }
 
-    private emitLobbyUpdate(socket: socketio.Socket = null): void {
+    private emitLobbyUpdate(socket?: socketio.Socket): void {
         // Sends a lobby update
         const joinableGames: gl.GameInfo[] = this.lobby.getJoinableGames();
         const lobbyUpdate: LobbyUpdate = {
             joinableGames: joinableGames
         }
-        if (socket == null) { // send to everyone
+        if (socket === undefined) { // send to everyone
             this.io.to('lobby').emit('lobby update', lobbyUpdate);
         } else { // send to socket
             socket.emit('lobby update', lobbyUpdate);
         }
     }
 
-    private emitGameUpdate(gameId: string, playerId: string = null): void {
+    private emitGameUpdate(gameId: string, playerId?: string): void {
         // Emits (personalized) game update 
         const game: gm.Game = this.lobby.getGame(gameId);
         if (playerId == null) { // send update to all palyers in game
@@ -104,7 +104,7 @@ export class API {
     private handleConnection(socket: socketio.Socket): void {
 
         // Name validation
-        socket.on('request name check', function (message: NameCheckMessage) {
+        socket.on('request name check', function (this: API, message: NameCheckMessage) {
             try {
                 const answer: gl.NameValidation = this.lobby.checkPlayerName(message.name);
                 socket.emit('response name check', answer);
@@ -114,7 +114,7 @@ export class API {
         }.bind(this));
 
         // Add new player to lobby
-        socket.on('request player register', function (message: RegisterMessage) {
+        socket.on('request player register', function (this: API, message: RegisterMessage) {
 
             try {
                 const player: gm.Player = new gm.Player(message.name, message.isHuman);
@@ -133,7 +133,7 @@ export class API {
         }.bind(this));
 
         // Sends joinable games to requesting player
-        socket.on('request lobby update', function (message: PlayerIdMessage) {
+        socket.on('request lobby update', function (this: API, message: PlayerIdMessage) {
             try {
                 this.emitLobbyUpdate(socket);
             } catch (e) {
@@ -142,7 +142,7 @@ export class API {
         }.bind(this));
 
         // Player requests to start new game
-        socket.on('request new game', function (message: PlayerIdMessage) {
+        socket.on('request new game', function (this: API, message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -166,7 +166,7 @@ export class API {
         }.bind(this));
 
         // Player requests to join existing game
-        socket.on('request join game', function (message: JoinGameMessage) {
+        socket.on('request join game', function (this: API, message: JoinGameMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -191,7 +191,7 @@ export class API {
         }.bind(this));
 
         // Player requests to add an AI player to their game
-        socket.on('request add ai', function (message: PlayerIdMessage) {
+        socket.on('request add ai', function (this: API, message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -213,7 +213,7 @@ export class API {
         }.bind(this))
 
         // Player requests update on the game they're currently in
-        socket.on('request game update', function (message: PlayerIdMessage) {
+        socket.on('request game update', function (this: API, message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -231,7 +231,7 @@ export class API {
         }.bind(this));
 
         // Player requests to exit game
-        socket.on('request game exit', function (message: PlayerIdMessage) {
+        socket.on('request game exit', function (this: API, message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -261,7 +261,7 @@ export class API {
         }.bind(this));
 
         // Player disconnects
-        socket.on('disconnect', function () {
+        socket.on('disconnect', function (this: API) {
             try {
                 if (this.lobby.hasPlayerWithSocketId(socket.id)) {
                     const lobbyPlayer: gl.LobbyPlayer = this.lobby.getLobbyPlayerBySocketId(socket.id);
@@ -283,7 +283,7 @@ export class API {
         }.bind(this));
 
         // Player requests to start game
-        socket.on('request game start', function (message: PlayerIdMessage) {
+        socket.on('request game start', function (this: API, message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -306,7 +306,7 @@ export class API {
         }.bind(this));
 
         // Player requests to take losen action
-        socket.on('request losen', function (message: PlayerIdMessage) {
+        socket.on('request losen', function (this: API, message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -328,7 +328,7 @@ export class API {
         }.bind(this));
 
         // Player requests to take chlopfen action
-        socket.on('request chlopfen', function (message: PlayerIdMessage) {
+        socket.on('request chlopfen', function (this: API, message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -350,7 +350,7 @@ export class API {
         }.bind(this));
 
         // Player requests to switch all cards
-        socket.on('request switch all', function (message: PlayerIdMessage) {
+        socket.on('request switch all', function (this: API, message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -372,7 +372,7 @@ export class API {
         }.bind(this));
 
         // Player requests to switch two cards
-        socket.on('request switch', function (message: SwitchMessage) {
+        socket.on('request switch', function (this: API, message: SwitchMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -394,7 +394,7 @@ export class API {
         }.bind(this));
 
         // Player requests to take hosenaben action
-        socket.on('request hosenaben', function (message: PlayerIdMessage) {
+        socket.on('request hosenaben', function (this: API, message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -416,7 +416,7 @@ export class API {
         }.bind(this));
 
         // Player requests to take feuer action
-        socket.on('request feuer', function (message: PlayerIdMessage) {
+        socket.on('request feuer', function (this: API, message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -438,7 +438,7 @@ export class API {
         }.bind(this));
 
         // Player requests to start round
-        socket.on('request round start', function (message: PlayerIdMessage) {
+        socket.on('request round start', function (this: API, message: PlayerIdMessage) {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -459,7 +459,7 @@ export class API {
             }
         }.bind(this));
 
-        socket.on('make trashtalk', function (trashTalk: TrashTalk) {
+        socket.on('make trashtalk', function (this: API, trashTalk: TrashTalk) {
 
             if (!this.lobby.hasPlayer(trashTalk.playerId)) {
                 this.emitPlayerNotFoundError(socket);
