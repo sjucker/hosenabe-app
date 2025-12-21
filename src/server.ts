@@ -1,7 +1,7 @@
 import {API} from "./api";
 import {Lobby} from "./gameLobby";
 import express from "express";
-import socketio from 'socket.io';
+import {Server} from 'socket.io';
 import http from 'http';
 
 const APPPATH: string = 'client/build';
@@ -10,7 +10,7 @@ const PORT: string | number = process.env.PORT || 3000;
 // Create the server
 const app: express.Application = express();
 let httpServer: http.Server = http.createServer(app);
-let io: socketio.Server = socketio(httpServer);
+let io: Server = new Server(httpServer);
 
 // Serve the app
 app.use(express.static(APPPATH));

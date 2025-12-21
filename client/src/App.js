@@ -1,7 +1,6 @@
 import React from 'react';
 import './App.css'
 import {RegistrationPage} from "./RegistrationPage";
-import {createMuiTheme} from '@material-ui/core/styles';
 import AppBar from "@material-ui/core/AppBar";
 import Typography from "@material-ui/core/Typography";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -9,7 +8,7 @@ import CssBaseline from "@material-ui/core/CssBaseline";
 import {ThemeProvider} from "@material-ui/styles";
 import {GameLobby} from "./GameLobby";
 import {Game} from "./Game";
-import {Box} from "@material-ui/core";
+import {Box, createTheme} from "@material-ui/core";
 import Switch from "@material-ui/core/Switch";
 import SwipeableDrawer from "@material-ui/core/SwipeableDrawer";
 import IconButton from "@material-ui/core/IconButton";
@@ -90,7 +89,7 @@ class App extends React.Component {
             );
         }
 
-        const theme = createMuiTheme({
+        const theme = createTheme({
             palette: {
                 type: this.state.useDarkMode ? 'dark' : 'light',
                 primary: {

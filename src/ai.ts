@@ -1,6 +1,6 @@
 import * as api from './api';
 import * as gm from './game';
-import ioclient from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 
 export class AIPlayerManager {
 
@@ -50,7 +50,7 @@ abstract class AIPlayer {
     public id: string;
     public gameId: string;
     public name: string;
-    public socket: SocketIOClient.Socket;
+    public socket: Socket;
     public gameState: gm.GameState;
 
     constructor(playerName: string, gameId: string) {
@@ -58,7 +58,7 @@ abstract class AIPlayer {
         this.gameId = gameId;
         this.name = playerName;
         // TODO solve this differently
-        this.socket = ioclient.connect(`http://localhost:${process.env.PORT || 3000}`);
+        this.socket = io(`http://localhost:${process.env.PORT || 3000}`);
         this.gameState = null;
 
         this.play = this.play.bind(this);

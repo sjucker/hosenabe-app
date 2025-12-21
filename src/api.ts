@@ -1,6 +1,6 @@
 import * as gm from "./game";
 import * as gl from "./gameLobby";
-import socketio from "socket.io";
+import { Server, Socket } from "socket.io";
 
 
 export interface NameCheckMessage {
@@ -45,16 +45,16 @@ export interface TrashTalk {
 export class API {
 
     private lobby: gl.Lobby;
-    private io: socketio.Server;
+    private io: Server;
 
-    constructor(lobby: gl.Lobby, io: socketio.Server) {
+    constructor(lobby: gl.Lobby, io: Server) {
         this.lobby = lobby;
         this.io = io;
 
         this.handleConnection = this.handleConnection.bind(this);
     }
 
-    private emitLobbyUpdate(socket: socketio.Socket = null): void {
+    private emitLobbyUpdate(socket: Socket = null): void {
         // Sends a lobby update
         const joinableGames: gl.GameInfo[] = this.lobby.getJoinableGames();
         const lobbyUpdate: LobbyUpdate = {
@@ -97,11 +97,11 @@ export class API {
         }
     }
 
-    private emitPlayerNotFoundError(socket: socketio.Socket): void {
+    private emitPlayerNotFoundError(socket: Socket): void {
         socket.emit('server error', {type: 'player not found'});
     }
 
-    private handleConnection(socket: socketio.Socket): void {
+    private handleConnection(socket: Socket): void {
 
         // Name validation
         socket.on('request name check', function (message: NameCheckMessage) {
