@@ -16,12 +16,38 @@ import MenuIcon from '@material-ui/icons/Menu';
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import ListItem from "@material-ui/core/ListItem";
 import List from "@material-ui/core/List";
+import api from "./api";
 
 
 // Helper functions
 
 export function arrayContentEqual(array1, array2) {
     return (array1.length === array2.length) && (array1.every(val => array2.includes(val)));
+}
+
+// Session persistence: remember the registered player per browser tab, so a page refresh can reclaim the seat
+
+const SESSION_STORAGE_KEY = 'hosenabe.player';
+
+function loadStoredPlayer() {
+    try {
+        const stored = JSON.parse(window.sessionStorage.getItem(SESSION_STORAGE_KEY));
+        return (stored && stored.id) ? stored : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function storePlayer(playerInfo) {
+    try {
+        if (playerInfo) {
+            window.sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(playerInfo));
+        } else {
+            window.sessionStorage.removeItem(SESSION_STORAGE_KEY);
+        }
+    } catch (e) {
+        // Storage unavailable (e.g. private mode) -- refresh will simply not be persistent
+    }
 }
 
 // App
@@ -36,14 +62,50 @@ class App extends React.Component {
             hasPlayerJoinedGame: false,
             hasGameStarted: false,
             drawerOpen: false,
-            useDarkMode: true
+            useDarkMode: true,
+            isRestoringSession: loadStoredPlayer() !== null
         }
 
         this.setPlayerInfo = this.setPlayerInfo.bind(this);
         this.setGameJoined = this.setGameJoined.bind(this);
+        this.requestReconnect = this.requestReconnect.bind(this);
+        this.handleReconnectResponse = this.handleReconnectResponse.bind(this);
+    }
+
+    componentDidMount() {
+        api.setCallbackOnMessage('response reconnect', this.handleReconnectResponse);
+        // 'connect' also fires after socket.io re-establishes a dropped connection
+        api.setCallbackOnMessage('connect', this.requestReconnect);
+        if (api.isConnected()) {
+            this.requestReconnect();
+        }
+    }
+
+    componentWillUnmount() {
+        api.removeCallbackOnMessage('response reconnect', this.handleReconnectResponse);
+        api.removeCallbackOnMessage('connect', this.requestReconnect);
+    }
+
+    requestReconnect() {
+        const storedPlayer = loadStoredPlayer();
+        if (storedPlayer !== null) {
+            api.emitToServer('request reconnect', {playerId: storedPlayer.id});
+        }
+    }
+
+    handleReconnectResponse(message) {
+        if (message.success) {
+            this.setPlayerInfo(true, {id: message.playerId, name: message.playerName});
+            this.setGameJoined(message.isInGame);
+        } else {
+            // Server no longer knows this player -> back to registration
+            this.setPlayerInfo(false);
+        }
+        this.setState({isRestoringSession: false});
     }
 
     setPlayerInfo(isRegistered, playerInfo = {}) {
+        storePlayer(isRegistered ? playerInfo : null);
         this.setState({
             playerInfo: playerInfo,
             hasPlayerRegistered: isRegistered
@@ -73,7 +135,11 @@ class App extends React.Component {
         }
 
         let pageElement;
-        if (!this.state.hasPlayerRegistered) {
+        if (this.state.isRestoringSession) {
+            pageElement = (
+                <Typography align="center">Verbinde...</Typography>
+            );
+        } else if (!this.state.hasPlayerRegistered) {
             pageElement = (
                 <RegistrationPage setPlayerInfo={this.setPlayerInfo}/>
             );

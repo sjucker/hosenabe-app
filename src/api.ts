@@ -2,6 +2,9 @@ import * as gm from "./game";
 import * as gl from "./gameLobby";
 import { Server, Socket } from "socket.io";
 
+// How long a disconnected human player keeps their seat (e.g. to survive a page refresh)
+const RECONNECT_GRACE_MS: number = 60 * 1000;
+
 
 export interface NameCheckMessage {
     name: string;
@@ -37,6 +40,13 @@ export interface SwitchMessage {
     tableCardName: string
 }
 
+export interface ReconnectResponse {
+    success: boolean,
+    playerId: string,
+    playerName: string,
+    isInGame: boolean
+}
+
 export interface TrashTalk {
     playerId: string,
     message: string
@@ -46,10 +56,12 @@ export class API {
 
     private lobby: gl.Lobby;
     private io: Server;
+    private disconnectTimers: Map<string, NodeJS.Timeout>;
 
     constructor(lobby: gl.Lobby, io: Server) {
         this.lobby = lobby;
         this.io = io;
+        this.disconnectTimers = new Map();
 
         this.handleConnection = this.handleConnection.bind(this);
     }
@@ -94,6 +106,36 @@ export class API {
         for (const id of game.getPlayerIds()) {
             const socketId: string = this.lobby.getLobbyPlayer(id).socketId;
             this.io.to(socketId).emit('trashtalk', trashTalkMessage);
+        }
+    }
+
+    private cancelPendingRemoval(playerId: string): void {
+        const timer: NodeJS.Timeout = this.disconnectTimers.get(playerId);
+        if (timer !== undefined) {
+            clearTimeout(timer);
+            this.disconnectTimers.delete(playerId);
+        }
+    }
+
+    private removeDisconnectedPlayer(playerId: string): void {
+        // Removes a player (and leaves their game) after their socket is gone for good
+        try {
+            if (!this.lobby.hasPlayer(playerId)) {
+                return;
+            }
+            const lobbyPlayer: gl.LobbyPlayer = this.lobby.getLobbyPlayer(playerId);
+            if (lobbyPlayer.isInGame) {
+                const gameId: string = lobbyPlayer.gameId;
+                this.lobby.removePlayerFromGame(playerId);
+                this.lobby.cleanUpGame(gameId);
+                if (this.lobby.hasGame(gameId)) { // bc game might have been auto removed when no players left
+                    this.emitGameUpdate(gameId);
+                }
+            }
+            this.lobby.removePlayer(playerId);
+            this.emitLobbyUpdate();
+        } catch (e) {
+            console.log(e);
         }
     }
 
@@ -260,22 +302,61 @@ export class API {
             }
         }.bind(this));
 
+        // Player reconnects with a new socket (e.g. after a page refresh)
+        socket.on('request reconnect', function (message: PlayerIdMessage) {
+            try {
+                const response: ReconnectResponse = {
+                    success: false,
+                    playerId: null,
+                    playerName: null,
+                    isInGame: false
+                };
+
+                if (message && this.lobby.hasPlayer(message.playerId)) {
+                    const lobbyPlayer: gl.LobbyPlayer = this.lobby.getLobbyPlayer(message.playerId);
+                    if (lobbyPlayer.player.isHuman) {
+                        this.cancelPendingRemoval(lobbyPlayer.player.id);
+                        this.lobby.updatePlayerSocketId(lobbyPlayer.player.id, socket.id);
+                        socket.join(lobbyPlayer.isInGame ? lobbyPlayer.gameId : 'lobby');
+
+                        response.success = true;
+                        response.playerId = lobbyPlayer.player.id;
+                        response.playerName = lobbyPlayer.player.name;
+                        response.isInGame = lobbyPlayer.isInGame;
+                    }
+                }
+
+                socket.emit('response reconnect', response);
+
+                if (response.success) {
+                    if (response.isInGame) {
+                        this.emitGameUpdate(this.lobby.getLobbyPlayer(response.playerId).gameId, response.playerId);
+                    } else {
+                        this.emitLobbyUpdate(socket);
+                    }
+                }
+            } catch (e) {
+                console.log(e);
+            }
+        }.bind(this));
+
         // Player disconnects
         socket.on('disconnect', function () {
             try {
                 if (this.lobby.hasPlayerWithSocketId(socket.id)) {
                     const lobbyPlayer: gl.LobbyPlayer = this.lobby.getLobbyPlayerBySocketId(socket.id);
                     const playerId: string = lobbyPlayer.player.id;
-                    if (this.lobby.isPlayerInGame(playerId)) {
-                        const gameId: string = lobbyPlayer.gameId;
-                        this.lobby.removePlayerFromGame(playerId);
-                        this.lobby.cleanUpGame(gameId);
-                        if (this.lobby.hasGame(gameId)) { // bc game might have been auto removed when no players left
-                            this.emitGameUpdate(gameId);
-                        }
+                    if (lobbyPlayer.player.isHuman) {
+                        // Keep the seat for a while so the player can reconnect
+                        this.cancelPendingRemoval(playerId);
+                        const timer: NodeJS.Timeout = setTimeout(() => {
+                            this.disconnectTimers.delete(playerId);
+                            this.removeDisconnectedPlayer(playerId);
+                        }, RECONNECT_GRACE_MS);
+                        this.disconnectTimers.set(playerId, timer);
+                    } else {
+                        this.removeDisconnectedPlayer(playerId);
                     }
-                    this.lobby.removePlayer(playerId);
-                    this.emitLobbyUpdate();
                 }
             } catch (e) {
                 console.log(e);
