@@ -9,7 +9,7 @@ const AI_NAME_CANDIDATES = ['Trudi', 'Fritzli', 'Köbi', 'Ruedi',
 export interface LobbyPlayer {
     player: gm.Player,
     isInGame: boolean,
-    gameId: string,
+    gameId: string | null,
     socketId: string
 }
 
@@ -72,11 +72,12 @@ export class Lobby {
         return this.lobbyPlayers.some(lb => lb.socketId == socketId);
     }
 
-    public getLobbyPlayerBySocketId(socketId: string) {
-        if (!this.hasPlayerWithSocketId(socketId)) {
+    public getLobbyPlayerBySocketId(socketId: string): LobbyPlayer {
+        const lobbyPlayer: LobbyPlayer | undefined = this.lobbyPlayers.find(lb => lb.socketId == socketId);
+        if (lobbyPlayer === undefined) {
             throw new RangeError('Player not found');
         }
-        return this.lobbyPlayers.find(lb => lb.socketId == socketId);
+        return lobbyPlayer;
     }
 
     public addPlayer(player: gm.Player, socketId: string): void {
@@ -104,10 +105,19 @@ export class Lobby {
     }
 
     public getLobbyPlayer(playerId: string): LobbyPlayer {
-        if (!this.hasPlayer(playerId)) {
+        const lobbyPlayer: LobbyPlayer | undefined = this.lobbyPlayers.find(lb => lb.player.id == playerId);
+        if (lobbyPlayer === undefined) {
             throw new RangeError('Player not found.');
         }
-        return this.lobbyPlayers.find(lb => lb.player.id == playerId);
+        return lobbyPlayer;
+    }
+
+    public getPlayerGameId(playerId: string): string {
+        const gameId: string | null = this.getLobbyPlayer(playerId).gameId;
+        if (gameId === null) {
+            throw new Error('Player is not in a game.');
+        }
+        return gameId;
     }
 
     public removePlayer(playerId: string): void {
@@ -137,10 +147,11 @@ export class Lobby {
     }
 
     public getGame(gameId: string): gm.Game {
-        if (!this.hasGame(gameId)) {
+        const game: gm.Game | undefined = this.games.find(gm => gm.id == gameId);
+        if (game === undefined) {
             throw new RangeError('Game not found.');
         }
-        return this.games.find(gm => gm.id == gameId);
+        return game;
     }
 
     public removeGame(gameId: string): void {
@@ -243,7 +254,7 @@ export class Lobby {
             throw new Error('Cannot remove player from game; player is not in game.');
         }
 
-        const game: gm.Game = this.getGame(lobbyPlayer.gameId);
+        const game: gm.Game = this.getGame(this.getPlayerGameId(playerId));
         game.removePlayer(lobbyPlayer.player.id);
         lobbyPlayer.isInGame = false;
         lobbyPlayer.gameId = null;

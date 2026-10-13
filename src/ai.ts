@@ -10,7 +10,7 @@ export class AIPlayerManager {
         this.aiPlayers = [];
     };
 
-    private hasPlayer(playerId: string): boolean {
+    private hasPlayer(playerId: string | null): boolean {
         return this.aiPlayers.some(pl => pl.id === playerId);
     }
 
@@ -47,11 +47,11 @@ interface ActionAndCards {
 }
 
 abstract class AIPlayer {
-    public id: string;
+    public id: string | null;
     public gameId: string;
     public name: string;
     public socket: Socket;
-    public gameState: gm.GameState;
+    public gameState: gm.GameState | null;
 
     constructor(playerName: string, gameId: string) {
         this.id = null;
@@ -132,11 +132,20 @@ abstract class AIPlayer {
     }
 
     public requestRoundStart(): void {
+        if (this.id === null) {
+            return;
+        }
         const playerIdMessage: api.PlayerIdMessage = {playerId: this.id};
         this.socket.emit('request round start', playerIdMessage);
     }
 
     private play(): void {
+
+        // Not registered or no game state received yet
+        if (this.id === null || this.gameState === null) {
+            return;
+        }
+        const playerId: string = this.id;
 
         // First check whether any actions are allowed at all
         const allowedActions: gm.Action[] = this.gameState.allowedActions;
@@ -148,38 +157,41 @@ abstract class AIPlayer {
         }
 
         // Otherwise, choose and play action
-        const actionAndCards: ActionAndCards = this.chooseAction();
+        const actionAndCards: ActionAndCards = this.chooseAction(this.gameState);
         const action: gm.Action = actionAndCards.action;
 
         switch (action) {
             case gm.Action.Chlopfen:
-                const chlopfMessage: api.PlayerIdMessage = {playerId: this.id};
+                const chlopfMessage: api.PlayerIdMessage = {playerId: playerId};
                 this.socket.emit('request chlopfen', chlopfMessage);
                 break;
 
             case gm.Action.Losen:
-                const losenMessage: api.PlayerIdMessage = {playerId: this.id};
+                const losenMessage: api.PlayerIdMessage = {playerId: playerId};
                 this.socket.emit('request losen', losenMessage);
                 break;
 
             case gm.Action.SwitchAll:
-                const switchAllMessage: api.PlayerIdMessage = {playerId: this.id};
+                const switchAllMessage: api.PlayerIdMessage = {playerId: playerId};
                 this.socket.emit('request switch all', switchAllMessage);
                 break;
 
             case gm.Action.Hosenaben:
-                const hosenabenMessage: api.PlayerIdMessage = {playerId: this.id};
+                const hosenabenMessage: api.PlayerIdMessage = {playerId: playerId};
                 this.socket.emit('request hosenaben', hosenabenMessage);
                 break;
 
             case gm.Action.Feuer:
-                const feuerMessage: api.PlayerIdMessage = {playerId: this.id};
+                const feuerMessage: api.PlayerIdMessage = {playerId: playerId};
                 this.socket.emit('request feuer', feuerMessage);
                 break;
 
             case gm.Action.Switch:
+                if (actionAndCards.switchCards === undefined) {
+                    break;
+                }
                 const switchMessage: api.SwitchMessage = {
-                    playerId: this.id,
+                    playerId: playerId,
                     playerCardName: actionAndCards.switchCards.playerCardName,
                     tableCardName: actionAndCards.switchCards.tableCardName
                 };
@@ -191,7 +203,7 @@ abstract class AIPlayer {
         }
     }
 
-    abstract chooseAction(): ActionAndCards;
+    abstract chooseAction(gameState: gm.GameState): ActionAndCards;
 }
 
 
@@ -200,11 +212,11 @@ export class RandomAIPlayer extends AIPlayer {
     Implementation of AI Player that chooses actions randomly 
     */
 
-    public chooseAction(): ActionAndCards {
+    public chooseAction(gameState: gm.GameState): ActionAndCards {
         // If player has special combo: plays it
         // Otherwise: chooses action stochastically, but never switch
 
-        const allowedActions: gm.Action[] = this.gameState.allowedActions;
+        const allowedActions: gm.Action[] = gameState.allowedActions;
 
         if (allowedActions.includes(gm.Action.Feuer)) {
             return {action: gm.Action.Feuer};
@@ -233,6 +245,9 @@ export class DeterministicAIPlayer extends AIPlayer {
         let points: number;
         switch (actionAndCards.action) {
             case gm.Action.Switch:
+                if (actionAndCards.switchCards === undefined) {
+                    throw new Error('Switch action without cards.');
+                }
                 const playerCardName: string = actionAndCards.switchCards.playerCardName;
                 const handStackCards: gm.Card[] = handStack.getCards().slice();
                 const playerCardIdx: number = handStackCards.findIndex(pl => pl.name === playerCardName);
@@ -262,27 +277,27 @@ export class DeterministicAIPlayer extends AIPlayer {
         return points;
     }
 
-    public chooseAction(): ActionAndCards {
+    public chooseAction(gameState: gm.GameState): ActionAndCards {
 
         // Some error checking.. if hand/table cards are missing, play nothing
-        if (this.gameState.thisPlayerCards.length == 0) {
+        if (gameState.thisPlayerCards.length == 0) {
             return {action: gm.Action.Nothing};
         }
 
         // Turn hand- and table-cards into HandStack object (for point counting)
         const handStack: gm.HandStack = new gm.HandStack();
-        for (const card of this.gameState.thisPlayerCards) {
+        for (const card of gameState.thisPlayerCards) {
             const _card: gm.Card = new gm.Card(card.suit, card.rank);
             handStack.addCard(_card);
         }
         const tableStack: gm.HandStack = new gm.HandStack();
-        for (const card of this.gameState.tableCards) {
+        for (const card of gameState.tableCards) {
             const _card: gm.Card = new gm.Card(card.suit, card.rank);
             tableStack.addCard(_card);
         }
 
         // Make a list of all possible actions and record associated points\
-        const allowedActions: gm.Action[] = this.gameState.allowedActions;
+        const allowedActions: gm.Action[] = gameState.allowedActions;
         const actionCandidates: ActionAndCards[] = [];
         const actionCandidatePoints: number[] = [];
         for (const allowedAction of allowedActions) {
