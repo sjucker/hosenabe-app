@@ -129,7 +129,7 @@ export class Lobby {
     }
 
     public getGame(gameId: string): gm.Game {
-        if (!this.hasGame) {
+        if (!this.hasGame(gameId)) {
             throw new RangeError('Game not found.');
         }
         return this.games.find(gm => gm.id == gameId);
