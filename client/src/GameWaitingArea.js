@@ -7,6 +7,7 @@ import Chip from "@material-ui/core/Chip";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import PlayArrowIcon from "@material-ui/icons/PlayArrow";
 import ComputerIcon from "@material-ui/icons/Computer";
+import MoodBadIcon from "@material-ui/icons/MoodBad";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import {makeStyles} from "@material-ui/core/styles";
 import {PlayerAvatar} from "./PlayerAvatar";
@@ -116,7 +117,7 @@ export function GameWaitingArea({playerInfo, players, spectators, isSpectator, h
                 <ul className={classes.list}>
                     {players.map((pl, i) => (
                         <li key={pl.playerId} className={classes.row}>
-                            <PlayerAvatar name={pl.playerName} isHuman={pl.isHuman}/>
+                            <PlayerAvatar name={pl.playerName} isHuman={pl.isHuman} aiType={pl.aiType}/>
                             <Typography className={classes.name}>
                                 {pl.playerName}{pl.playerId === playerInfo.id ? ' (du)' : ''}
                             </Typography>
@@ -160,6 +161,20 @@ export function GameWaitingArea({playerInfo, players, spectators, isSpectator, h
                         >
                             Computer-Spiler dezue
                         </Button>
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            size="large"
+                            disabled={numPlayers >= MAX_PLAYERS}
+                            onClick={() => handleMenuButtonClick('addSaboteur')}
+                            startIcon={<MoodBadIcon/>}
+                            fullWidth
+                        >
+                            Saboteur dezue
+                        </Button>
+                        <Typography variant="caption" color="textSecondary" align="center" component="p">
+                            En Saboteur suecht sich heimlich en Spiler us und probiert, dass dä verlüürt.
+                        </Typography>
                     </div>
                 )}
             </Paper>

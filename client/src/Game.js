@@ -202,7 +202,12 @@ export class Game extends React.Component {
         }
 
         if (buttonId === 'addAI') {
-            const message = {playerId: this.props.playerInfo.id};
+            const message = {playerId: this.props.playerInfo.id, aiType: 'Standard'};
+            api.emitToServer('request add ai', message);
+        }
+
+        if (buttonId === 'addSaboteur') {
+            const message = {playerId: this.props.playerInfo.id, aiType: 'Saboteur'};
             api.emitToServer('request add ai', message);
         }
 

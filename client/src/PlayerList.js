@@ -86,7 +86,7 @@ export function PlayerList({players, spectators, currentPlayerId, thisPlayerId, 
                     return (
                         <li key={pl.playerId} className={cx(classes.row, isTurn && classes.turn, isOut && classes.out)}
                             aria-current={isTurn ? 'true' : undefined}>
-                            <PlayerAvatar name={pl.playerName} isHuman={pl.isHuman}/>
+                            <PlayerAvatar name={pl.playerName} isHuman={pl.isHuman} aiType={pl.aiType}/>
                             <div className={classes.name}>
                                 <Typography className={classes.nameText} variant="body2">
                                     {pl.playerName}{pl.playerId === thisPlayerId ? ' (du)' : ''}

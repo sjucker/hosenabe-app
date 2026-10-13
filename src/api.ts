@@ -12,7 +12,8 @@ export interface NameCheckMessage {
 
 export interface RegisterMessage {
     name: string,
-    isHuman: boolean
+    isHuman: boolean,
+    aiType?: gm.AIType
 }
 
 export interface RegisterResponse {
@@ -32,6 +33,11 @@ export interface LobbyUpdate {
 export interface JoinGameMessage {
     playerId: string,
     gameId: string
+}
+
+export interface AddAIMessage {
+    playerId: string,
+    aiType?: gm.AIType
 }
 
 export interface SpectateGameMessage {
@@ -181,6 +187,9 @@ export class API {
 
             try {
                 const player: gm.Player = new gm.Player(message.name, message.isHuman);
+                if (!message.isHuman && message.aiType === gm.AIType.Saboteur) {
+                    player.aiType = gm.AIType.Saboteur;
+                }
                 this.lobby.addPlayer(player, socket.id);
 
                 socket.join('lobby'); // Adds player to lobby socket.io room
@@ -278,7 +287,7 @@ export class API {
         });
 
         // Player requests to add an AI player to their game
-        socket.on('request add ai', (message: PlayerIdMessage) => {
+        socket.on('request add ai', (message: AddAIMessage) => {
 
             if (!this.lobby.hasPlayer(message.playerId)) {
                 this.emitPlayerNotFoundError(socket);
@@ -291,7 +300,8 @@ export class API {
                     const game: gm.Game = this.lobby.getGame(this.lobby.getPlayerGameId(message.playerId));
 
                     // Spawn & add the AI player
-                    this.lobby.addAIPlayerToGame(game.id);
+                    const aiType: gm.AIType = message.aiType === gm.AIType.Saboteur ? gm.AIType.Saboteur : gm.AIType.Standard;
+                    this.lobby.addAIPlayerToGame(game.id, aiType);
                 }
             } catch (e) {
                 console.log(e);

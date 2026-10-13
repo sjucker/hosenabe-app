@@ -294,6 +294,7 @@ export class Player {
     readonly id: string;
     private tokens: number;
     public isHuman: boolean;
+    public aiType: AIType | null;
     public name: string;
     public hand: HandStack;
 
@@ -305,6 +306,7 @@ export class Player {
     ) {
         this.name = name;
         this.isHuman = isHuman;
+        this.aiType = isHuman ? null : AIType.Standard;
         this.tokens = tokens;
         this.hand = new HandStack();
         this.id = makeId(idLength);
@@ -340,10 +342,18 @@ export enum Action {
     Nothing = 'Nothing'
 }
 
+export enum AIType {
+    Standard = 'Standard', // plays for its own points
+    Saboteur = 'Saboteur'  // tries to make one other player lose
+}
+
 export interface LogMessage {
     readonly playerId: string | null,
     readonly playerName: string | null,
-    readonly message: string
+    readonly message: string,
+    // Cards moved by a switch (public, as they're in the message too)
+    readonly takenCardNames?: string[],
+    readonly givenCardNames?: string[]
 }
 
 export interface PlayerScorecard {
@@ -370,6 +380,7 @@ export interface PlayerOverview {
         playerId: string,
         playerName: string,
         isHuman: boolean,
+        aiType: AIType | null,
         tokens: number
     }[]
 }
@@ -504,12 +515,19 @@ export class Game {
         return !this.isLosenLegal();
     }
 
-    private addLogMessage(message: string, playerId: string | null = null): void {
+    private addLogMessage(message: string, playerId: string | null = null,
+                          switchedCards?: { taken: string[], given: string[] }): void {
         let playerName: string | null = null;
         if (playerId != null) {
             playerName = this.getPlayerName(playerId);
         }
-        this.log.push({playerId: playerId, playerName: playerName, message: message});
+        this.log.push({
+            playerId: playerId,
+            playerName: playerName,
+            message: message,
+            takenCardNames: switchedCards?.taken,
+            givenCardNames: switchedCards?.given
+        });
     }
 
     // Player controls
@@ -726,6 +744,7 @@ export class Game {
                     playerId: pl.id,
                     playerName: pl.name,
                     isHuman: pl.isHuman,
+                    aiType: pl.aiType,
                     tokens: pl.getTokens()
                 }
             })
@@ -859,7 +878,8 @@ export class Game {
         // 2 Log message
         const tableCardPrintName: string = this.table.getCardPrintName(tableCardName);
         const playerCardPrintName: string = player.hand.getCardPrintName(playerCardName);
-        this.addLogMessage(`nimmt ${tableCardPrintName} und leit ${playerCardPrintName}.`, playerId);
+        this.addLogMessage(`nimmt ${tableCardPrintName} und leit ${playerCardPrintName}.`, playerId,
+            {taken: [tableCardName], given: [playerCardName]});
 
         // 3 Increment counters
 
@@ -897,12 +917,13 @@ export class Game {
             }
             cardString = cardString.concat(this.table.getCardPrintName(cardNames[i]));
         }
-        this.addLogMessage(`nimmt ${cardString}.`, playerId);
+        const player: Player = this.getPlayer(playerId);
+        this.addLogMessage(`nimmt ${cardString}.`, playerId,
+            {taken: cardNames, given: player.hand.getCardNames()});
 
         // 3 Increment counters
 
         // 4 Update cards / game state
-        const player: Player = this.getPlayer(playerId);
         const playerCards: Card[] = player.hand.popCards();
         const tableCards: Card[] = this.table.popCards();
         player.hand.addCards(tableCards);

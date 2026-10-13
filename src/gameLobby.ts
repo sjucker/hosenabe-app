@@ -237,7 +237,7 @@ export class Lobby {
         return lobbyPlayer.isInGame && lobbyPlayer.isSpectator;
     }
 
-    public addAIPlayerToGame(gameId: string): void {
+    public addAIPlayerToGame(gameId: string, aiType: gm.AIType = gm.AIType.Standard): void {
 
         if (!this.canAddPlayerToGame('some_player', gameId)) {
             throw new Error('Cannot add AI player to game.');
@@ -264,7 +264,7 @@ export class Lobby {
         }
 
         // Spawn the AI player (the AI registers and joins the game by itself)
-        this.aiManager.spawnPlayer(candidateName.concat(nameDigit), gameId);
+        this.aiManager.spawnPlayer(candidateName.concat(nameDigit), gameId, aiType);
     }
 
     public removePlayerFromGame(playerId: string): void {

@@ -1,6 +1,7 @@
 import React from "react";
 import Avatar from "@material-ui/core/Avatar";
 import ComputerIcon from "@material-ui/icons/Computer";
+import MoodBadIcon from "@material-ui/icons/MoodBad";
 import {makeStyles} from "@material-ui/core/styles";
 
 // Stable, pleasant colours per player name
@@ -24,11 +25,19 @@ const useStyles = makeStyles({
     }
 });
 
-export function PlayerAvatar({name, isHuman}) {
+export function PlayerAvatar({name, isHuman, aiType}) {
     const classes = useStyles();
+    let content;
+    if (isHuman) {
+        content = name.charAt(0).toUpperCase();
+    } else if (aiType === 'Saboteur') {
+        content = <MoodBadIcon fontSize="small" aria-label="Saboteur"/>;
+    } else {
+        content = <ComputerIcon fontSize="small" aria-label="Computer-Spiler"/>;
+    }
     return (
         <Avatar className={classes.avatar} style={{backgroundColor: colorForName(name)}}>
-            {isHuman ? name.charAt(0).toUpperCase() : <ComputerIcon fontSize="small" aria-label="Computer-Spiler"/>}
+            {content}
         </Avatar>
     );
 }
