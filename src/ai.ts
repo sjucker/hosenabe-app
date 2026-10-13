@@ -523,7 +523,7 @@ function playOut(model: RoundModel): string[] {
 
 export class SaboteurAIPlayer extends DeterministicAIPlayer {
     /*
-    Implementation of AI Player whose sole goal is to make one other (randomly picked) player lose.
+    Implementation of AI Player whose sole goal is to make one other player lose (picked at random by the game).
     It follows all public card switches to narrow down the other hands, then rates each possible
     action by playing the rest of the round out many times (with the unknown cards dealt at random):
     it picks the action most likely to cost the target a token, while not losing one itself.
@@ -542,15 +542,9 @@ export class SaboteurAIPlayer extends DeterministicAIPlayer {
     }
 
     private updateTarget(gameState: gm.GameState): void {
-        const players = gameState.playerOverview.players;
-        const target = players.find(pl => pl.playerId === this.targetId);
-        if (target !== undefined && target.tokens > 0) {
-            return;
-        }
-
-        // Pick a new target among the other players still in the game
-        const candidates = players.filter(pl => pl.playerId !== this.id && pl.tokens > 0);
-        this.targetId = candidates.length > 0 ? pickRandom(candidates).playerId : null;
+        // The game assigns the target (so spectators can see it)
+        const saboteurTarget = gameState.saboteurTargets.find(st => st.saboteurId === this.id);
+        this.targetId = saboteurTarget !== undefined ? saboteurTarget.targetId : null;
     }
 
     private trackKnownCards(gameState: gm.GameState): void {

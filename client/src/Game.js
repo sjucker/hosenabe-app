@@ -64,7 +64,8 @@ export class Game extends React.Component {
             hasReceivedGameState: false,
             isSpectator: false,
             playerHands: [],
-            spectators: []
+            spectators: [],
+            saboteurTargets: []
         };
 
         this.handleGameStateUpdate = this.handleGameStateUpdate.bind(this);
@@ -176,7 +177,8 @@ export class Game extends React.Component {
             hasReceivedGameState: true,
             isSpectator: gameState.isSpectator,
             playerHands: gameState.playerHands,
-            spectators: gameState.spectators
+            spectators: gameState.spectators,
+            saboteurTargets: gameState.saboteurTargets
         });
     }
 
@@ -343,6 +345,7 @@ export class Game extends React.Component {
                         isSpectator={this.state.isSpectator}
                         playerHands={this.state.playerHands}
                         spectators={this.state.spectators}
+                        saboteurTargets={this.state.saboteurTargets}
                     />
                     <TurnInfo
                         open={this.state.myTurnInfoOpen}

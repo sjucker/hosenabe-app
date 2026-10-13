@@ -6,6 +6,7 @@ import {Karte} from "./Karte";
 import {analyzeHand, formatPoints} from "./handValue";
 import {tokens} from "./theme";
 import {TokenPips} from "./TokenPips";
+import MoodBadIcon from "@material-ui/icons/MoodBad";
 
 const useStyles = makeStyles(theme => ({
     felt: {
@@ -188,8 +189,28 @@ const useStyles = makeStyles(theme => ({
         gap: 4
     },
     handName: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
         maxWidth: '100%',
         fontWeight: 600,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap'
+    },
+    saboteurIcon: {
+        flex: 'none',
+        fontSize: '1.1rem',
+        color: tokens.gold
+    },
+    victimPill: {
+        maxWidth: '100%',
+        padding: '1px 8px',
+        borderRadius: 999,
+        fontSize: '0.75rem',
+        fontWeight: 700,
+        background: '#c0392b',
+        color: '#ffffff',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap'
@@ -376,12 +397,25 @@ export function SpectatorTable(props) {
                     const cardNames = hand ? hand.cards.map(cr => cr.name) : [];
                     const isOut = pl.tokens <= 0;
                     const isTurn = props.isRoundOngoing && pl.playerId === props.currentPlayerId;
+                    // Saboteurs targeting this player
+                    const saboteurNames = props.saboteurTargets
+                        .filter(st => st.targetId === pl.playerId)
+                        .map(st => props.players.find(other => other.playerId === st.saboteurId))
+                        .filter(saboteur => saboteur !== undefined)
+                        .map(saboteur => saboteur.playerName);
                     return (
                         <li key={pl.playerId}
                             className={cx(classes.handRow, isTurn && classes.handTurn, isOut && classes.handOut)}
                             aria-current={isTurn ? 'true' : undefined}>
                             <div className={classes.handInfo}>
-                                <span className={classes.handName}>{pl.playerName}</span>
+                                <span className={classes.handName}>
+                                    {pl.aiType === 'Saboteur' &&
+                                        <MoodBadIcon className={classes.saboteurIcon} aria-label="Saboteur"/>}
+                                    {pl.playerName}
+                                </span>
+                                {saboteurNames.length > 0 && (
+                                    <span className={classes.victimPill}>Opfer vo {saboteurNames.join(', ')}</span>
+                                )}
                                 <div className={classes.handMeta}>
                                     <TokenPips tokens={pl.tokens}/>
                                     <HandValuePill classes={classes} cardNames={cardNames}/>

@@ -155,6 +155,7 @@ export function GameScreen(props) {
                         <SpectatorTable
                             players={props.players}
                             playerHands={props.playerHands}
+                            saboteurTargets={props.saboteurTargets}
                             tableCardNames={props.tableCardNames}
                             currentPlayerId={props.currentPlayerId}
                             currentRound={props.currentRound}

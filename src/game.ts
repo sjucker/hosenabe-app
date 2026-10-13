@@ -295,6 +295,7 @@ export class Player {
     private tokens: number;
     public isHuman: boolean;
     public aiType: AIType | null;
+    public saboteurTargetId: string | null = null; // the player a saboteur tries to make lose
     public name: string;
     public hand: HandStack;
 
@@ -395,6 +396,11 @@ export interface SpectatorInfo {
     readonly playerName: string
 }
 
+export interface SaboteurTarget {
+    readonly saboteurId: string,
+    readonly targetId: string
+}
+
 export interface GameState {
 
     readonly gameId: string,
@@ -410,6 +416,8 @@ export interface GameState {
     // Players
     readonly playerOverview: PlayerOverview,
     readonly spectators: SpectatorInfo[],
+    // Spectators see every saboteur's target, a saboteur only its own, other players none
+    readonly saboteurTargets: SaboteurTarget[],
 
     // Allowed actions
     readonly allowedActions: Action[],
@@ -591,6 +599,29 @@ export class Game {
         this.addLogMessage(`${spectator.name} luegt nüme zue.`);
     }
 
+    private assignSaboteurTargets(): void {
+        const activePlayers: Player[] = this.getActivePlayers();
+        for (const saboteur of activePlayers.filter(pl => pl.aiType === AIType.Saboteur)) {
+            const isTargetActive: boolean = activePlayers.some(pl => pl.id === saboteur.saboteurTargetId);
+            if (!isTargetActive) {
+                const candidates: Player[] = activePlayers.filter(pl => pl.id !== saboteur.id);
+                saboteur.saboteurTargetId = candidates.length > 0
+                    ? candidates[Math.floor(Math.random() * candidates.length)].id
+                    : null;
+            }
+        }
+    }
+
+    private getSaboteurTargets(): SaboteurTarget[] {
+        const targets: SaboteurTarget[] = [];
+        for (const saboteur of this.getActivePlayers().filter(pl => pl.aiType === AIType.Saboteur)) {
+            if (saboteur.saboteurTargetId !== null && this.hasPlayer(saboteur.saboteurTargetId)) {
+                targets.push({saboteurId: saboteur.id, targetId: saboteur.saboteurTargetId});
+            }
+        }
+        return targets;
+    }
+
     public hasSpectator(playerId: string): boolean {
         return this.spectators.some(sp => sp.id === playerId);
     }
@@ -764,6 +795,8 @@ export class Game {
 
             playerOverview: playerOverview,
             spectators: this.spectators.map(sp => ({playerId: sp.id, playerName: sp.name})),
+            saboteurTargets: this.getSaboteurTargets()
+                .filter(st => isSpectator || st.saboteurId === playerId),
             allowedActions: isSpectator ? [] : this.getAllowedActions(playerId),
             isGameStarted: this.isGameStarted,
             isGameEnded: this.isGameEnded,
@@ -819,6 +852,9 @@ export class Game {
 
         // Set first player
         this.currentPlayerId = this.currentStartingPlayerId;
+
+        // Saboteurs whose target is out (or gone) pick a new one
+        this.assignSaboteurTargets();
 
         // Log message
         this.addLogMessage(`Rundi ${this.currentRound + 1} hät agfange.`);
