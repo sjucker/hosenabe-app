@@ -21,19 +21,38 @@ import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import SwapHorizIcon from '@material-ui/icons/SwapHoriz';
 import WhatshotIcon from '@material-ui/icons/Whatshot';
 import StarIcon from '@material-ui/icons/Star';
-import {makeStyles} from "@material-ui/core/styles";
+import {makeStyles, useTheme} from "@material-ui/core/styles";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
 import cx from "./cx";
 
 const useStyles = makeStyles(theme => ({
     root: {
-        paddingBottom: theme.spacing(4)
+        paddingBottom: theme.spacing(4),
+        [theme.breakpoints.down('xs')]: {
+            paddingLeft: theme.spacing(1),
+            paddingRight: theme.spacing(1),
+            paddingBottom: theme.spacing(2)
+        }
     },
     actions: {
-        marginTop: theme.spacing(2)
+        marginTop: theme.spacing(2),
+        [theme.breakpoints.down('xs')]: {
+            marginTop: theme.spacing(1)
+        }
     },
     actionButton: {
         height: 52,
-        fontSize: '1rem'
+        fontSize: '1rem',
+        [theme.breakpoints.down('xs')]: {
+            height: 44,
+            padding: theme.spacing(0, 0.5),
+            fontSize: '0.85rem',
+            lineHeight: 1.15,
+            // Four buttons share one row on phones, so drop the icons
+            '& .MuiButton-startIcon': {
+                display: 'none'
+            }
+        }
     },
     special: {
         animation: '$pulse 1.4s ease-in-out infinite'
@@ -50,10 +69,16 @@ const useStyles = makeStyles(theme => ({
     sidebar: {
         display: 'flex',
         flexDirection: 'column',
-        gap: theme.spacing(2)
+        gap: theme.spacing(2),
+        [theme.breakpoints.down('xs')]: {
+            gap: theme.spacing(1)
+        }
     },
     panel: {
-        padding: theme.spacing(2)
+        padding: theme.spacing(2),
+        [theme.breakpoints.down('xs')]: {
+            padding: theme.spacing(1, 1.5, 1.5)
+        }
     },
     chat: {
         display: 'flex',
@@ -78,6 +103,7 @@ const useStyles = makeStyles(theme => ({
 
 export function GameScreen(props) {
     const classes = useStyles();
+    const isPhone = useMediaQuery(useTheme().breakpoints.down('xs'));
     const [trashTalkMessage, setTrashTalkMessage] = useState('');
     const [confirmExitOpen, setConfirmExitOpen] = useState(false);
 
@@ -123,7 +149,7 @@ export function GameScreen(props) {
 
     return (
         <Container component="main" maxWidth="lg" className={classes.root}>
-            <Grid container spacing={3}>
+            <Grid container spacing={isPhone ? 1 : 3}>
                 <Grid item xs={12} md={8}>
                     <TableTop
                         playerCardNames={props.playerCardNames}
@@ -143,7 +169,7 @@ export function GameScreen(props) {
                     />
 
                     <Grid container spacing={1} className={classes.actions}>
-                        <Grid item xs={6} sm={3}>
+                        <Grid item xs={3}>
                             <Button
                                 className={classes.actionButton}
                                 disabled={!canLosen && !canChlopfen}
@@ -155,7 +181,7 @@ export function GameScreen(props) {
                                 {canLosen ? 'Lose' : 'Chlopfe'}
                             </Button>
                         </Grid>
-                        <Grid item xs={6} sm={3}>
+                        <Grid item xs={3}>
                             <Button
                                 className={classes.actionButton}
                                 disabled={!allowed('SwitchAll')}
@@ -168,7 +194,7 @@ export function GameScreen(props) {
                                 Ali wechsle
                             </Button>
                         </Grid>
-                        <Grid item xs={6} sm={3}>
+                        <Grid item xs={3}>
                             <Button
                                 className={cx(classes.actionButton, canHosenaben && classes.special)}
                                 disabled={!canHosenaben}
@@ -181,7 +207,7 @@ export function GameScreen(props) {
                                 Hosenabe
                             </Button>
                         </Grid>
-                        <Grid item xs={6} sm={3}>
+                        <Grid item xs={3}>
                             <Button
                                 className={cx(classes.actionButton, canFeuer && classes.special)}
                                 disabled={!canFeuer}

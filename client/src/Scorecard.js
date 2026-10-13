@@ -27,7 +27,10 @@ const useStyles = makeStyles(theme => ({
     },
     title: {
         textAlign: 'center',
-        paddingBottom: theme.spacing(1)
+        paddingBottom: theme.spacing(1),
+        [theme.breakpoints.down('xs')]: {
+            padding: theme.spacing(2, 2, 1)
+        }
     },
     trophy: {
         display: 'block',
@@ -48,7 +51,10 @@ const useStyles = makeStyles(theme => ({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 6,
-        marginBottom: theme.spacing(2)
+        marginBottom: theme.spacing(2),
+        [theme.breakpoints.down('xs')]: {
+            marginBottom: theme.spacing(1)
+        }
     },
     tableLabel: {
         marginRight: theme.spacing(1),
@@ -69,6 +75,9 @@ const useStyles = makeStyles(theme => ({
         gap: theme.spacing(1.5),
         padding: theme.spacing(1.25, 1.5),
         borderRadius: 14,
+        [theme.breakpoints.down('xs')]: {
+            padding: theme.spacing(0.75, 1.25)
+        },
         '& + &': {
             marginTop: theme.spacing(0.5)
         }
@@ -133,7 +142,10 @@ const useStyles = makeStyles(theme => ({
         color: theme.palette.primary.main
     },
     actions: {
-        padding: theme.spacing(1, 3, 3)
+        padding: theme.spacing(1, 3, 3),
+        [theme.breakpoints.down('xs')]: {
+            padding: theme.spacing(1, 2, 2)
+        }
     }
 }));
 

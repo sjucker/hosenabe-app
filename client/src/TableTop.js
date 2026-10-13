@@ -17,6 +17,11 @@ const useStyles = makeStyles(theme => ({
         boxShadow: `inset 0 0 0 2px ${tokens.woodDark}, inset 0 0 40px rgba(0,0,0,0.35), 0 10px 30px rgba(0,0,0,0.25)`,
         [theme.breakpoints.up('sm')]: {
             padding: theme.spacing(2.5, 4, 3)
+        },
+        [theme.breakpoints.down('xs')]: {
+            borderRadius: 20,
+            borderWidth: 6,
+            padding: theme.spacing(1, 1, 1.25)
         }
     },
     statusBar: {
@@ -25,13 +30,20 @@ const useStyles = makeStyles(theme => ({
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: theme.spacing(1),
-        minHeight: 32
+        minHeight: 32,
+        [theme.breakpoints.down('xs')]: {
+            minHeight: 28,
+            padding: theme.spacing(0, 0.5)
+        }
     },
     round: {
         fontFamily: tokens.displayFont,
         fontWeight: 600,
         fontSize: '1.05rem',
-        color: tokens.feltTextMuted
+        color: tokens.feltTextMuted,
+        [theme.breakpoints.down('xs')]: {
+            fontSize: '0.95rem'
+        }
     },
     pills: {
         display: 'flex',
@@ -48,7 +60,11 @@ const useStyles = makeStyles(theme => ({
         fontWeight: 600,
         background: 'rgba(0,0,0,0.28)',
         color: tokens.feltText,
-        whiteSpace: 'nowrap'
+        whiteSpace: 'nowrap',
+        [theme.breakpoints.down('xs')]: {
+            padding: '3px 10px',
+            fontSize: '0.8rem'
+        }
     },
     myTurnPill: {
         background: tokens.gold,
@@ -65,7 +81,10 @@ const useStyles = makeStyles(theme => ({
     },
     section: {
         marginTop: theme.spacing(2),
-        textAlign: 'center'
+        textAlign: 'center',
+        [theme.breakpoints.down('xs')]: {
+            marginTop: theme.spacing(1)
+        }
     },
     sectionHeader: {
         display: 'flex',
@@ -73,7 +92,11 @@ const useStyles = makeStyles(theme => ({
         justifyContent: 'center',
         gap: theme.spacing(1),
         minHeight: 28,
-        marginBottom: theme.spacing(1.5)
+        marginBottom: theme.spacing(1.5),
+        [theme.breakpoints.down('xs')]: {
+            minHeight: 22,
+            marginBottom: theme.spacing(0.75)
+        }
     },
     label: {
         fontSize: '0.75rem',
@@ -106,14 +129,21 @@ const useStyles = makeStyles(theme => ({
         height: 1,
         margin: theme.spacing(2.5, 'auto', 0),
         maxWidth: 420,
-        background: 'linear-gradient(90deg, transparent, rgba(243,239,226,0.3), transparent)'
+        background: 'linear-gradient(90deg, transparent, rgba(243,239,226,0.3), transparent)',
+        [theme.breakpoints.down('xs')]: {
+            marginTop: theme.spacing(1.5)
+        }
     },
     hint: {
         marginTop: theme.spacing(2),
         minHeight: '1.5em',
         textAlign: 'center',
         fontSize: '0.9rem',
-        color: tokens.feltTextMuted
+        color: tokens.feltTextMuted,
+        [theme.breakpoints.down('xs')]: {
+            marginTop: theme.spacing(1),
+            fontSize: '0.8rem'
+        }
     },
     '@media (prefers-reduced-motion: reduce)': {
         myTurnPill: {
@@ -188,7 +218,7 @@ export function TableTop(props) {
         } else if (isTableSelected && !isHandSelected) {
             hint = 'Jetzt e Charte us dinere Hand wähle.';
         } else {
-            hint = 'Tipp: Wähl e Charte vo dinere Hand und eini vom Tisch, zum tusche.';
+            hint = 'Tipp: E Charte us dinere Hand und eini vom Tisch wähle.';
         }
     }
 

@@ -17,7 +17,7 @@ export const tokens = {
 export function createAppTheme(useDarkMode) {
     const headingStyle = {fontFamily: tokens.displayFont, fontWeight: 700, letterSpacing: '-0.01em'};
 
-    return createTheme({
+    const theme = createTheme({
         palette: {
             type: useDarkMode ? 'dark' : 'light',
             primary: {
@@ -80,4 +80,15 @@ export function createAppTheme(useDarkMode) {
             }
         }
     });
+
+    // Phones: a slimmer app bar leaves more room for the game
+    theme.overrides.MuiToolbar = {
+        regular: {
+            [theme.breakpoints.down('xs')]: {
+                minHeight: 48
+            }
+        }
+    };
+
+    return theme;
 }

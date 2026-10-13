@@ -8,7 +8,10 @@ const useStyles = makeStyles(theme => ({
         margin: 0,
         padding: 0,
         maxHeight: 220,
-        overflowY: 'auto'
+        overflowY: 'auto',
+        [theme.breakpoints.down('xs')]: {
+            maxHeight: 160
+        }
     },
     entry: {
         padding: theme.spacing(0.75, 0),

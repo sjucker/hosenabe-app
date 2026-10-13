@@ -9,12 +9,18 @@ import {tokens} from "./theme";
 
 const useStyles = makeStyles(theme => ({
     root: {
-        padding: theme.spacing(2)
+        padding: theme.spacing(2),
+        [theme.breakpoints.down('xs')]: {
+            padding: theme.spacing(1, 1.5, 1.5)
+        }
     },
     list: {
         listStyle: 'none',
         margin: theme.spacing(1, 0, 0),
-        padding: 0
+        padding: 0,
+        [theme.breakpoints.down('xs')]: {
+            marginTop: 0
+        }
     },
     row: {
         display: 'flex',
@@ -22,7 +28,10 @@ const useStyles = makeStyles(theme => ({
         gap: theme.spacing(1.5),
         padding: theme.spacing(1, 1),
         borderRadius: 12,
-        transition: 'background-color 200ms ease'
+        transition: 'background-color 200ms ease',
+        [theme.breakpoints.down('xs')]: {
+            padding: theme.spacing(0.5, 1)
+        }
     },
     turn: {
         backgroundColor: theme.palette.type === 'dark' ? 'rgba(232, 179, 58, 0.14)' : 'rgba(232, 179, 58, 0.2)',

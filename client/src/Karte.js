@@ -9,7 +9,7 @@ import {tokens} from "./theme";
 // Card images are 161 x 247
 const CARD_RATIO = '161 / 247';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
     card: {
         position: 'relative',
         display: 'block',
@@ -31,11 +31,18 @@ const useStyles = makeStyles({
         }
     },
     large: {
-        width: 'min(27vw, 124px)'
+        width: 'min(27vw, 124px)',
+        // Phones: also cap by the viewport height, so both card rows and the actions stay visible
+        [theme.breakpoints.down('xs')]: {
+            width: 'min(27vw, 124px, 12.5vh)'
+        }
     },
     small: {
         width: 38,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+        boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+        [theme.breakpoints.down('xs')]: {
+            width: 32
+        }
     },
     selectable: {
         cursor: 'pointer',
@@ -63,7 +70,7 @@ const useStyles = makeStyles({
         border: `2px dashed rgba(243, 239, 226, 0.35)`,
         background: 'rgba(0, 0, 0, 0.12)'
     }
-});
+}));
 
 export function Karte(props) {
     const classes = useStyles();

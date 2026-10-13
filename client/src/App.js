@@ -227,7 +227,7 @@ class App extends React.Component {
                         </Tooltip>
                     </Toolbar>
                 </AppBar>
-                <Box pt={3}>
+                <Box pt={{xs: 1, sm: 3}}>
                     {pageElement}
                 </Box>
             </ThemeProvider>

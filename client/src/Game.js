@@ -6,6 +6,35 @@ import {arrayContentEqual} from "./App";
 import Snackbar from "@material-ui/core/Snackbar";
 import Alert from "@material-ui/lab/Alert";
 import ChatIcon from "@material-ui/icons/Chat";
+import {makeStyles} from "@material-ui/core/styles";
+
+const useTurnInfoStyles = makeStyles(theme => ({
+    root: {
+        top: 80,
+        // Phones: show it over the app bar, so it doesn't cover the game status on the table
+        [theme.breakpoints.down('xs')]: {
+            top: 4
+        }
+    }
+}));
+
+function TurnInfo({open, onClose}) {
+    const classes = useTurnInfoStyles();
+    return (
+        <Snackbar
+            anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'center',
+            }}
+            className={classes.root}
+            autoHideDuration={3000}
+            open={open}
+            onClose={onClose}
+        >
+            <Alert severity="success" variant="filled">Du bisch dra</Alert>
+        </Snackbar>
+    );
+}
 
 export class Game extends React.Component {
     constructor(props) {
@@ -299,20 +328,12 @@ export class Game extends React.Component {
                         isChlopfState={this.state.isChlopfState}
                         makeTrashTalk={this.trashTalk}
                     />
-                    <Snackbar
-                        anchorOrigin={{
-                            vertical: 'top',
-                            horizontal: 'center',
-                        }}
-                        style={{top: 80}}
-                        autoHideDuration={3000}
+                    <TurnInfo
                         open={this.state.myTurnInfoOpen}
                         onClose={() => {
                             this.setState({myTurnInfoOpen: false})
                         }}
-                    >
-                        <Alert severity="success" variant="filled">Du bisch dra</Alert>
-                    </Snackbar>
+                    />
                     <Snackbar
                         anchorOrigin={{
                             vertical: 'bottom',
