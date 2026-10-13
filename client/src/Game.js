@@ -30,7 +30,8 @@ export class Game extends React.Component {
             logEntries: [],
             myTurnInfoOpen: false,
             isChlopfState: false,
-            trashTalkMessage: null
+            trashTalkMessage: null,
+            hasReceivedGameState: false
         };
 
         this.handleGameStateUpdate = this.handleGameStateUpdate.bind(this);
@@ -123,8 +124,8 @@ export class Game extends React.Component {
         const myTokens = gameState.playerOverview.players.find(pl => pl.playerId === this.props.playerInfo.id).tokens;
         this.setState({myTokens: myTokens});
 
-        /* If the round just ended: update the scorecard and display it */
-        if (gameState.isRoundEnded && this.state.isRoundOngoing) {
+        /* If the round just ended (or we (re)joined while its scorecard is due): update the scorecard and display it */
+        if (gameState.isRoundEnded && (this.state.isRoundOngoing || !this.state.hasReceivedGameState)) {
             const currentRound = gameState.currentRound;
             const scorecard = gameState.scorecards[currentRound];
             const scorecardInfo = {
@@ -146,7 +147,8 @@ export class Game extends React.Component {
             players: gameState.playerOverview.players,
             currentPlayerId: gameState.currentPlayerId,
             allowedActions: gameState.allowedActions,
-            logEntries: gameState.log.reverse()
+            logEntries: gameState.log.reverse(),
+            hasReceivedGameState: true
         });
     }
 

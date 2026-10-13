@@ -16,4 +16,8 @@ function emitToServer(messageName, messageContent) {
     socket.emit(messageName, messageContent);
 }
 
-export default {emitToServer, setCallbackOnMessage, removeCallbackOnMessage};
+function isConnected() {
+    return socket.connected;
+}
+
+export default {emitToServer, setCallbackOnMessage, removeCallbackOnMessage, isConnected};

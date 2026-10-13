@@ -95,6 +95,14 @@ export class Lobby {
         this.lobbyPlayers.push(lobbyPlayer);
     }
 
+    public updatePlayerSocketId(playerId: string, socketId: string): void {
+        // Rebinds an existing player to a new socket (e.g. after a page refresh)
+        if (this.lobbyPlayers.some(lb => lb.socketId == socketId && lb.player.id != playerId)) {
+            throw new Error('Socket id already used by another player.');
+        }
+        this.getLobbyPlayer(playerId).socketId = socketId;
+    }
+
     public getLobbyPlayer(playerId: string): LobbyPlayer {
         if (!this.hasPlayer(playerId)) {
             throw new RangeError('Player not found.');
