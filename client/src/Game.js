@@ -1,11 +1,11 @@
 import React from "react";
-import SimpleTable from "./SimpleTable";
 import api from "./api";
 import {GameWaitingArea} from "./GameWaitingArea";
 import {GameScreen} from "./GameScreen";
 import {arrayContentEqual} from "./App";
 import Snackbar from "@material-ui/core/Snackbar";
 import Alert from "@material-ui/lab/Alert";
+import ChatIcon from "@material-ui/icons/Chat";
 
 export class Game extends React.Component {
     constructor(props) {
@@ -17,7 +17,8 @@ export class Game extends React.Component {
             isRoundEnded: false,
             isGameEnded: false,
             currentRound: 0,
-            playerInfoTable: new SimpleTable([]),
+            numTurnsLeft: 0,
+            players: [],
             currentPlayerId: null,
             myTurn: false,
             myTokens: 3,
@@ -62,7 +63,7 @@ export class Game extends React.Component {
 
     componentWillUnmount() {
         api.removeCallbackOnMessage('game update', this.handleGameStateUpdate);
-        api.removeCallbackOnMessage('server error', this.handleGameStateUpdate);
+        api.removeCallbackOnMessage('server error', this.handleServerError);
         api.removeCallbackOnMessage('response game exit', this.handleGameExitResponse);
         api.removeCallbackOnMessage('trashtalk', this.handleTrashTalk);
     }
@@ -79,15 +80,6 @@ export class Game extends React.Component {
     }
 
     handleGameStateUpdate(gameState) {
-
-        /* Make a simple table with all the player info */
-        const playerInfoTable = new SimpleTable(['id', 'Name', 'Isätz', 'turn']);
-        for (let i = 0; i < gameState.playerOverview.players.length; i++) {
-            const pl = gameState.playerOverview.players[i];
-            const turn = (gameState.currentPlayerId === pl.playerId);
-            playerInfoTable.addRow([pl.playerId, pl.playerName, pl.tokens, turn]);
-        }
-        this.setState({playerInfoTable: playerInfoTable});
 
         /* Get new card names */
         let playerCardNames = gameState.thisPlayerCards.map(cr => cr.name);
@@ -144,6 +136,7 @@ export class Game extends React.Component {
             isRoundOngoing: gameState.isRoundOngoing,
             isRoundEnded: gameState.isRoundEnded,
             currentRound: gameState.currentRound,
+            numTurnsLeft: gameState.numTurnsLeft,
             players: gameState.playerOverview.players,
             currentPlayerId: gameState.currentPlayerId,
             allowedActions: gameState.allowedActions,
@@ -231,6 +224,11 @@ export class Game extends React.Component {
           Highlights card if clicked (unless it was already highlighted).
           Unhighlights all other cards.
         */
+        // Cards can only be selected when switching is possible
+        if (!this.state.allowedActions.includes('Switch')) {
+            return;
+        }
+
         var tableCardsHighlighted = this.state.tableCardsHighlighted.slice();
         var playerCardsHighlighted = this.state.playerCardsHighlighted.slice();
         var newState;
@@ -272,7 +270,7 @@ export class Game extends React.Component {
             retVal = (
                 <GameWaitingArea
                     playerInfo={this.props.playerInfo}
-                    playerInfoTable={this.state.playerInfoTable}
+                    players={this.state.players}
                     handleMenuButtonClick={this.handleMenuButtonClick}
                 />
             );
@@ -281,15 +279,19 @@ export class Game extends React.Component {
                 <div>
                     <GameScreen
                         playerInfo={this.props.playerInfo}
-                        playerInfoTable={this.state.playerInfoTable}
+                        players={this.state.players}
                         playerCardNames={this.state.playerCardNames}
                         tableCardNames={this.state.tableCardNames}
                         currentPlayerId={this.state.currentPlayerId}
+                        currentRound={this.state.currentRound}
+                        numTurnsLeft={this.state.numTurnsLeft}
+                        isRoundOngoing={this.state.isRoundOngoing}
                         isGameEnded={this.state.isGameEnded}
+                        myTurn={this.state.myTurn}
+                        myTokens={this.state.myTokens}
                         scorecardInfo={this.state.scorecardInfo}
                         playerCardsHighlighted={this.state.playerCardsHighlighted}
                         tableCardsHighlighted={this.state.tableCardsHighlighted}
-                        showScorecard={this.state.showScorecard}
                         logEntries={this.state.logEntries}
                         allowedActions={this.state.allowedActions}
                         handleMenuButtonClick={this.handleMenuButtonClick}
@@ -302,6 +304,7 @@ export class Game extends React.Component {
                             vertical: 'top',
                             horizontal: 'center',
                         }}
+                        style={{top: 80}}
                         autoHideDuration={3000}
                         open={this.state.myTurnInfoOpen}
                         onClose={() => {
@@ -322,9 +325,9 @@ export class Game extends React.Component {
                         }}
                     >
                         <Alert
-                            severity="error"
+                            severity="info"
                             variant="filled"
-                            icon={false}
+                            icon={<ChatIcon fontSize="inherit"/>}
                         >
                             {this.state.trashTalkMessage}
                         </Alert>

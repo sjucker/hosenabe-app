@@ -1,95 +1,238 @@
 import React from "react";
-import Grid from "@material-ui/core/Grid";
-import CardDirectory from "./karten";
-import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
+import {makeStyles} from "@material-ui/core/styles";
+import cx from "./cx";
 import {Karte} from "./Karte";
-import Badge from "@material-ui/core/Badge";
+import {analyzeHand, formatPoints} from "./handValue";
+import {tokens} from "./theme";
 
-
-export class TableTop extends React.Component {
-    render() {
-        let tisch = <Typography component="h1" variant="h5">Tisch</Typography>
-        if (this.props.isChlopfState) {
-            tisch = <Badge badgeContent={'gchlopft!'} color="primary">{tisch}</Badge>
+const useStyles = makeStyles(theme => ({
+    felt: {
+        position: 'relative',
+        borderRadius: 28,
+        padding: theme.spacing(2, 2, 2.5),
+        color: tokens.feltText,
+        background: `radial-gradient(ellipse at 50% 35%, ${tokens.feltLight} 0%, ${tokens.feltDark} 100%)`,
+        border: `10px solid ${tokens.wood}`,
+        boxShadow: `inset 0 0 0 2px ${tokens.woodDark}, inset 0 0 40px rgba(0,0,0,0.35), 0 10px 30px rgba(0,0,0,0.25)`,
+        [theme.breakpoints.up('sm')]: {
+            padding: theme.spacing(2.5, 4, 3)
         }
-
-        return (
-            <Box>
-                {tisch}
-                <Grid container spacing={2}>
-                    <Grid item xs={4} align="left">
-                        <Karte
-                            cardImageSource={CardDirectory[this.props.tableCardNames[0]]}
-                            handleClick={() => this.props.handleCardClick({
-                                cardRowName: 'table',
-                                clickedCardIdx: 0
-                            })}
-                            selected={this.props.tableCardsHighlighted[0]}
-                        />
-                    </Grid>
-
-                    <Grid item xs={4} align="center">
-                        <Karte
-                            cardImageSource={CardDirectory[this.props.tableCardNames[1]]}
-                            handleClick={() => this.props.handleCardClick({
-                                cardRowName: 'table',
-                                clickedCardIdx: 1
-                            })}
-                            selected={this.props.tableCardsHighlighted[1]}
-                        />
-                    </Grid>
-
-                    <Grid item xs={4} align="right">
-                        <Karte
-                            cardImageSource={CardDirectory[this.props.tableCardNames[2]]}
-                            handleClick={() => this.props.handleCardClick({
-                                cardRowName: 'table',
-                                clickedCardIdx: 2
-                            })}
-                            selected={this.props.tableCardsHighlighted[2]}
-                        />
-                    </Grid>
-                </Grid>
-
-                <Box mt={2}>
-                    <Typography component="h1" variant="h5">Hand</Typography>
-                    <Grid container spacing={2}>
-                        <Grid item xs={4} align="left">
-                            <Karte
-                                cardImageSource={CardDirectory[this.props.playerCardNames[0]]}
-                                handleClick={() => this.props.handleCardClick({
-                                    cardRowName: 'player',
-                                    clickedCardIdx: 0
-                                })}
-                                selected={this.props.playerCardsHighlighted[0]}
-                            />
-                        </Grid>
-
-                        <Grid item xs={4} align="center">
-                            <Karte
-                                cardImageSource={CardDirectory[this.props.playerCardNames[1]]}
-                                handleClick={() => this.props.handleCardClick({
-                                    cardRowName: 'player',
-                                    clickedCardIdx: 1
-                                })}
-                                selected={this.props.playerCardsHighlighted[1]}
-                            />
-                        </Grid>
-
-                        <Grid item xs={4} align="right">
-                            <Karte
-                                cardImageSource={CardDirectory[this.props.playerCardNames[2]]}
-                                handleClick={() => this.props.handleCardClick({
-                                    cardRowName: 'player',
-                                    clickedCardIdx: 2
-                                })}
-                                selected={this.props.playerCardsHighlighted[2]}
-                            />
-                        </Grid>
-                    </Grid>
-                </Box>
-            </Box>
-        );
+    },
+    statusBar: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: theme.spacing(1),
+        minHeight: 32
+    },
+    round: {
+        fontFamily: tokens.displayFont,
+        fontWeight: 600,
+        fontSize: '1.05rem',
+        color: tokens.feltTextMuted
+    },
+    pills: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: theme.spacing(1),
+        justifyContent: 'flex-end'
+    },
+    pill: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        padding: '4px 12px',
+        borderRadius: 999,
+        fontSize: '0.85rem',
+        fontWeight: 600,
+        background: 'rgba(0,0,0,0.28)',
+        color: tokens.feltText,
+        whiteSpace: 'nowrap'
+    },
+    myTurnPill: {
+        background: tokens.gold,
+        color: '#2b1d00',
+        animation: '$glow 1.6s ease-in-out infinite'
+    },
+    chlopfPill: {
+        background: '#c0392b',
+        color: '#ffffff'
+    },
+    '@keyframes glow': {
+        '0%, 100%': {boxShadow: '0 0 0 0 rgba(232, 179, 58, 0.7)'},
+        '50%': {boxShadow: '0 0 0 8px rgba(232, 179, 58, 0)'}
+    },
+    section: {
+        marginTop: theme.spacing(2),
+        textAlign: 'center'
+    },
+    sectionHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: theme.spacing(1),
+        minHeight: 28,
+        marginBottom: theme.spacing(1.5)
+    },
+    label: {
+        fontSize: '0.75rem',
+        fontWeight: 600,
+        letterSpacing: '0.14em',
+        textTransform: 'uppercase',
+        color: tokens.feltTextMuted
+    },
+    valuePill: {
+        padding: '2px 10px',
+        borderRadius: 999,
+        fontSize: '0.8rem',
+        fontWeight: 700,
+        background: 'rgba(243, 239, 226, 0.92)',
+        color: tokens.feltDark
+    },
+    specialValue: {
+        background: tokens.gold,
+        color: '#2b1d00'
+    },
+    cards: {
+        display: 'flex',
+        justifyContent: 'center',
+        gap: 'min(3vw, 18px)',
+        // Leave room for the lifted, selected card
+        paddingTop: 14,
+        marginTop: -14
+    },
+    divider: {
+        height: 1,
+        margin: theme.spacing(2.5, 'auto', 0),
+        maxWidth: 420,
+        background: 'linear-gradient(90deg, transparent, rgba(243,239,226,0.3), transparent)'
+    },
+    hint: {
+        marginTop: theme.spacing(2),
+        minHeight: '1.5em',
+        textAlign: 'center',
+        fontSize: '0.9rem',
+        color: tokens.feltTextMuted
+    },
+    '@media (prefers-reduced-motion: reduce)': {
+        myTurnPill: {
+            animation: 'none'
+        }
     }
+}));
+
+function CardRow({cardNames, highlighted, rowName, selectable, placeholder, handleCardClick}) {
+    const classes = useStyles();
+    return (
+        <div className={classes.cards}>
+            {cardNames.map((cardName, idx) => (
+                <Karte
+                    key={idx}
+                    cardName={cardName}
+                    placeholder={placeholder}
+                    selectable={selectable}
+                    selected={selectable && highlighted[idx]}
+                    handleClick={() => handleCardClick({cardRowName: rowName, clickedCardIdx: idx})}
+                />
+            ))}
+        </div>
+    );
+}
+
+export function TableTop(props) {
+    const classes = useStyles();
+
+    const handValue = analyzeHand(props.playerCardNames);
+    const isHandSelected = props.playerCardsHighlighted.some(h => h);
+    const isTableSelected = props.tableCardsHighlighted.some(h => h);
+
+    // Status pills
+    let statusPill;
+    if (props.isGameEnded) {
+        statusPill = <span className={classes.pill}>S'Spiel isch fertig</span>;
+    } else if (!props.isRoundOngoing) {
+        statusPill = <span className={classes.pill}>Rundi fertig</span>;
+    } else if (props.myTurn) {
+        statusPill = <span className={cx(classes.pill, classes.myTurnPill)}>Du bisch dra!</span>;
+    } else if (props.currentPlayerName) {
+        statusPill = <span className={classes.pill}>{props.currentPlayerName} isch dra</span>;
+    }
+
+    let chlopfPill = null;
+    if (props.isRoundOngoing && props.isChlopfState) {
+        const turnsText = props.numTurnsLeft === 1 ? 'letschte Zug' : `na ${props.numTurnsLeft} Züg`;
+        chlopfPill = <span className={cx(classes.pill, classes.chlopfPill)}>Gchlopft · {turnsText}</span>;
+    }
+
+    // Value of the own hand
+    let valuePill = null;
+    if (handValue !== null) {
+        let text = `${formatPoints(handValue.points)} Pünkt`;
+        if (handValue.hasFeuer) {
+            text = 'Füür!';
+        } else if (handValue.hasHosenaben) {
+            text = 'Hosenabe!';
+        }
+        const isSpecial = handValue.hasFeuer || handValue.hasHosenaben;
+        valuePill = <span className={cx(classes.valuePill, isSpecial && classes.specialValue)}>{text}</span>;
+    }
+
+    // Guidance for the switch action
+    let hint = '';
+    if (props.isEliminated) {
+        hint = 'Du bisch usgschiede – lueg de andere no chli zue.';
+    } else if (props.canSwitch) {
+        if (isHandSelected && !isTableSelected) {
+            hint = 'Jetzt e Charte vom Tisch wähle.';
+        } else if (isTableSelected && !isHandSelected) {
+            hint = 'Jetzt e Charte us dinere Hand wähle.';
+        } else {
+            hint = 'Tipp: Wähl e Charte vo dinere Hand und eini vom Tisch, zum tusche.';
+        }
+    }
+
+    return (
+        <section className={classes.felt} aria-label="Spieltisch">
+            <div className={classes.statusBar}>
+                <span className={classes.round}>Rundi {props.currentRound + 1}</span>
+                <div className={classes.pills} role="status">
+                    {chlopfPill}
+                    {statusPill}
+                </div>
+            </div>
+
+            <div className={classes.section}>
+                <div className={classes.sectionHeader}>
+                    <Typography component="h2" className={classes.label}>Tisch</Typography>
+                </div>
+                <CardRow
+                    cardNames={props.tableCardNames}
+                    highlighted={props.tableCardsHighlighted}
+                    rowName="table"
+                    selectable={props.canSwitch}
+                    handleCardClick={props.handleCardClick}
+                />
+            </div>
+
+            <div className={classes.divider}/>
+
+            <div className={classes.section}>
+                <div className={classes.sectionHeader}>
+                    <Typography component="h2" className={classes.label}>Dini Hand</Typography>
+                    {valuePill}
+                </div>
+                <CardRow
+                    cardNames={props.playerCardNames}
+                    highlighted={props.playerCardsHighlighted}
+                    rowName="player"
+                    selectable={props.canSwitch}
+                    placeholder={props.isEliminated}
+                    handleCardClick={props.handleCardClick}
+                />
+            </div>
+
+            <div className={classes.hint}>{hint}</div>
+        </section>
+    );
 }

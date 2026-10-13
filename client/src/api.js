@@ -20,4 +20,6 @@ function isConnected() {
     return socket.connected;
 }
 
-export default {emitToServer, setCallbackOnMessage, removeCallbackOnMessage, isConnected};
+const api = {emitToServer, setCallbackOnMessage, removeCallbackOnMessage, isConnected};
+
+export default api;

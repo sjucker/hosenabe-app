@@ -1,184 +1,257 @@
 // Game
-import React from "react";
+import React, {useState} from "react";
 import {Scorecard} from "./Scorecard";
 import {TableTop} from "./TableTop";
+import {PlayerList} from "./PlayerList";
+import {GameLog} from "./GameLog";
 import Container from "@material-ui/core/Container";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
-import Table from "@material-ui/core/Table";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import TableCell from "@material-ui/core/TableCell";
-import TableBody from "@material-ui/core/TableBody";
-import TableContainer from "@material-ui/core/TableContainer";
-import Box from "@material-ui/core/Box";
-import {GameLog} from "./GameLog";
 import Paper from "@material-ui/core/Paper";
-import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
+import InputBase from "@material-ui/core/InputBase";
 import IconButton from "@material-ui/core/IconButton";
+import Dialog from "@material-ui/core/Dialog";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogActions from "@material-ui/core/DialogActions";
 import SendIcon from '@material-ui/icons/Send';
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import SwapHorizIcon from '@material-ui/icons/SwapHoriz';
+import WhatshotIcon from '@material-ui/icons/Whatshot';
+import StarIcon from '@material-ui/icons/Star';
+import {makeStyles} from "@material-ui/core/styles";
+import cx from "./cx";
 
-export class GameScreen extends React.Component {
-
-    constructor(props) {
-        super(props);
-
-        this.state = {trashTalkMessage: ''};
-
-        this.handleTrashTalkChange = this.handleTrashTalkChange.bind(this);
-        this.handleTrashTalkSubmit = this.handleTrashTalkSubmit.bind(this);
-    }
-
-    handleTrashTalkChange(event) {
-        this.setState({trashTalkMessage: event.target.value});
-    }
-
-    handleTrashTalkSubmit(event) {
-        this.props.makeTrashTalk(this.state.trashTalkMessage);
-        this.setState({trashTalkMessage: ''})
-        event.preventDefault();
-    }
-
-    render() {
-
-        // Prepare scorecard
-        let scorecardElement = <div/>
-        if (this.props.scorecardInfo.display) {
-            scorecardElement = (
-                <Scorecard
-                    scorecard={this.props.scorecardInfo.scorecard}
-                    playerInfoTable={this.props.playerInfoTable}
-                    isGameEnded={this.props.isGameEnded}
-                    handleMenuButtonClick={this.props.handleMenuButtonClick}
-                />
-            );
+const useStyles = makeStyles(theme => ({
+    root: {
+        paddingBottom: theme.spacing(4)
+    },
+    actions: {
+        marginTop: theme.spacing(2)
+    },
+    actionButton: {
+        height: 52,
+        fontSize: '1rem'
+    },
+    special: {
+        animation: '$pulse 1.4s ease-in-out infinite'
+    },
+    '@keyframes pulse': {
+        '0%, 100%': {boxShadow: '0 0 0 0 rgba(232, 179, 58, 0.75)'},
+        '50%': {boxShadow: '0 0 0 10px rgba(232, 179, 58, 0)'}
+    },
+    '@media (prefers-reduced-motion: reduce)': {
+        special: {
+            animation: 'none'
         }
-
-        return (
-            <Container component="main" maxWidth="md">
-                <TableTop
-                    playerCardNames={this.props.playerCardNames}
-                    playerCardsHighlighted={this.props.playerCardsHighlighted}
-                    tableCardNames={this.props.tableCardNames}
-                    tableCardsHighlighted={this.props.tableCardsHighlighted}
-                    handleCardClick={this.props.handleCardClick}
-                    isChlopfState={this.props.isChlopfState}
-                />
-                <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                        <Button
-                            disabled={!this.props.allowedActions.includes('SwitchAll')}
-                            variant="contained"
-                            fullWidth
-                            onClick={() => this.props.handleMenuButtonClick('switchAll')}
-                        >
-                            Ali Wechsle
-                        </Button>
-                    </Grid>
-
-                    <Grid item xs={6}>
-                        <Button
-                            disabled={!this.props.allowedActions.includes('Losen') && !this.props.allowedActions.includes('Chlopfen')}
-                            variant="contained"
-                            fullWidth
-                            onClick={() => this.props.handleMenuButtonClick(this.props.allowedActions.includes('Losen') ? 'losen' : 'chlopfen')}
-                        >
-                            {this.props.allowedActions.includes('Losen') ? 'Lose' : 'Chlopfe'}
-                        </Button>
-                    </Grid>
-
-                    <Grid item xs={6}>
-                        <Button
-                            disabled={!this.props.allowedActions.includes('Hosenaben')}
-                            variant="contained"
-                            fullWidth
-                            onClick={() => this.props.handleMenuButtonClick('hosenaben')}
-                        >
-                            Hosenabe
-                        </Button>
-                    </Grid>
-
-                    <Grid item xs={6}>
-                        <Button
-                            disabled={!this.props.allowedActions.includes('Feuer')}
-                            variant="contained"
-                            fullWidth
-                            onClick={() => this.props.handleMenuButtonClick('feuer')}
-                        >
-                            Füür
-                        </Button>
-                    </Grid>
-                </Grid>
-
-                <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                        <TableContainer>
-                            <Table size="small">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Name</TableCell>
-                                        <TableCell>Isätz</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {this.props.playerInfoTable.rows.map((row, i) => (
-                                        <TableRow
-                                            key={row[0]}
-                                            selected={this.props.playerInfoTable.getValue('turn', i)}
-                                        >
-                                            <TableCell>{row[1]}</TableCell>
-                                            <TableCell>{row[2]}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    </Grid>
-
-                    <Grid item xs={6}>
-                        <GameLog logEntries={this.props.logEntries}/>
-                    </Grid>
-                </Grid>
-                {scorecardElement}
-                <Box
-                    mt={2}
-                >
-                    <Paper
-                        style={{padding: '0.5rem'}}
-                        component="form"
-                        noValidate
-                        autoComplete="off"
-                        onSubmit={this.handleTrashTalkSubmit}
-                    >
-                        <Box
-                            display="flex"
-                        >
-                            <TextField
-                                label="Trash Talk"
-                                value={this.state.trashTalkMessage}
-                                onChange={this.handleTrashTalkChange}
-                                style={{flexGrow: 1}}
-                                inputProps={{maxLength: 100}}
-                            />
-                            <IconButton type="submit">
-                                <SendIcon/>
-                            </IconButton>
-                        </Box>
-                    </Paper>
-                </Box>
-                <Box
-                    mt={2}
-                    mb={2}
-                >
-                    <Button
-                        variant="outlined"
-                        fullWidth
-                        onClick={() => this.props.handleMenuButtonClick('exitGame')}
-                    >
-                        Spiel Verlah
-                    </Button>
-                </Box>
-            </Container>
-        )
+    },
+    sidebar: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: theme.spacing(2)
+    },
+    panel: {
+        padding: theme.spacing(2)
+    },
+    chat: {
+        display: 'flex',
+        alignItems: 'center',
+        marginTop: theme.spacing(1.5),
+        padding: theme.spacing(0.25, 0.5, 0.25, 1.5),
+        borderRadius: 999,
+        border: `1px solid ${theme.palette.divider}`,
+        '&:focus-within': {
+            borderColor: theme.palette.primary.main
+        }
+    },
+    chatInput: {
+        flex: 1,
+        fontSize: '0.9rem'
+    },
+    leave: {
+        alignSelf: 'center',
+        color: theme.palette.text.secondary
     }
+}));
+
+export function GameScreen(props) {
+    const classes = useStyles();
+    const [trashTalkMessage, setTrashTalkMessage] = useState('');
+    const [confirmExitOpen, setConfirmExitOpen] = useState(false);
+
+    const allowed = action => props.allowedActions.includes(action);
+    const canLosen = allowed('Losen');
+    const canChlopfen = allowed('Chlopfen');
+    const canHosenaben = allowed('Hosenaben');
+    const canFeuer = allowed('Feuer');
+
+    const currentPlayer = props.players.find(pl => pl.playerId === props.currentPlayerId);
+
+    function handleTrashTalkSubmit(event) {
+        event.preventDefault();
+        const message = trashTalkMessage.trim();
+        if (message.length > 0) {
+            props.makeTrashTalk(message);
+            setTrashTalkMessage('');
+        }
+    }
+
+    function handleExitClick() {
+        // Leaving a running game loses the seat for good, so ask first
+        if (props.isGameEnded) {
+            props.handleMenuButtonClick('exitGame');
+        } else {
+            setConfirmExitOpen(true);
+        }
+    }
+
+    // Prepare scorecard
+    let scorecardElement = null;
+    if (props.scorecardInfo.display) {
+        scorecardElement = (
+            <Scorecard
+                scorecard={props.scorecardInfo.scorecard}
+                thisPlayerId={props.playerInfo.id}
+                isGameEnded={props.isGameEnded}
+                canStartRound={props.myTokens > 0}
+                handleMenuButtonClick={props.handleMenuButtonClick}
+            />
+        );
+    }
+
+    return (
+        <Container component="main" maxWidth="lg" className={classes.root}>
+            <Grid container spacing={3}>
+                <Grid item xs={12} md={8}>
+                    <TableTop
+                        playerCardNames={props.playerCardNames}
+                        playerCardsHighlighted={props.playerCardsHighlighted}
+                        tableCardNames={props.tableCardNames}
+                        tableCardsHighlighted={props.tableCardsHighlighted}
+                        handleCardClick={props.handleCardClick}
+                        canSwitch={allowed('Switch')}
+                        isChlopfState={props.isChlopfState}
+                        numTurnsLeft={props.numTurnsLeft}
+                        currentRound={props.currentRound}
+                        isRoundOngoing={props.isRoundOngoing}
+                        isGameEnded={props.isGameEnded}
+                        myTurn={props.myTurn}
+                        currentPlayerName={currentPlayer ? currentPlayer.playerName : null}
+                        isEliminated={props.myTokens <= 0}
+                    />
+
+                    <Grid container spacing={1} className={classes.actions}>
+                        <Grid item xs={6} sm={3}>
+                            <Button
+                                className={classes.actionButton}
+                                disabled={!canLosen && !canChlopfen}
+                                variant="contained"
+                                color="primary"
+                                fullWidth
+                                onClick={() => props.handleMenuButtonClick(canLosen ? 'losen' : 'chlopfen')}
+                            >
+                                {canLosen ? 'Lose' : 'Chlopfe'}
+                            </Button>
+                        </Grid>
+                        <Grid item xs={6} sm={3}>
+                            <Button
+                                className={classes.actionButton}
+                                disabled={!allowed('SwitchAll')}
+                                variant="outlined"
+                                color="primary"
+                                fullWidth
+                                startIcon={<SwapHorizIcon/>}
+                                onClick={() => props.handleMenuButtonClick('switchAll')}
+                            >
+                                Ali wechsle
+                            </Button>
+                        </Grid>
+                        <Grid item xs={6} sm={3}>
+                            <Button
+                                className={cx(classes.actionButton, canHosenaben && classes.special)}
+                                disabled={!canHosenaben}
+                                variant={canHosenaben ? 'contained' : 'outlined'}
+                                color="secondary"
+                                fullWidth
+                                startIcon={<StarIcon/>}
+                                onClick={() => props.handleMenuButtonClick('hosenaben')}
+                            >
+                                Hosenabe
+                            </Button>
+                        </Grid>
+                        <Grid item xs={6} sm={3}>
+                            <Button
+                                className={cx(classes.actionButton, canFeuer && classes.special)}
+                                disabled={!canFeuer}
+                                variant={canFeuer ? 'contained' : 'outlined'}
+                                color="secondary"
+                                fullWidth
+                                startIcon={<WhatshotIcon/>}
+                                onClick={() => props.handleMenuButtonClick('feuer')}
+                            >
+                                Füür
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Grid>
+
+                <Grid item xs={12} md={4} className={classes.sidebar}>
+                    <PlayerList
+                        players={props.players}
+                        currentPlayerId={props.currentPlayerId}
+                        thisPlayerId={props.playerInfo.id}
+                        isRoundOngoing={props.isRoundOngoing}
+                    />
+
+                    <Paper className={classes.panel} variant="outlined">
+                        <Typography variant="overline" color="textSecondary" component="h2">Verlauf</Typography>
+                        <GameLog logEntries={props.logEntries}/>
+                        <form className={classes.chat} noValidate autoComplete="off" onSubmit={handleTrashTalkSubmit}>
+                            <InputBase
+                                className={classes.chatInput}
+                                placeholder="Trash Talk…"
+                                value={trashTalkMessage}
+                                onChange={event => setTrashTalkMessage(event.target.value)}
+                                inputProps={{maxLength: 100, 'aria-label': 'Trash Talk'}}
+                            />
+                            <IconButton type="submit" size="small" color="primary" aria-label="Schicke"
+                                        disabled={trashTalkMessage.trim().length === 0}>
+                                <SendIcon fontSize="small"/>
+                            </IconButton>
+                        </form>
+                    </Paper>
+
+                    <Button className={classes.leave} startIcon={<ExitToAppIcon/>} onClick={handleExitClick}>
+                        Spiel verlah
+                    </Button>
+                </Grid>
+            </Grid>
+
+            {scorecardElement}
+
+            <Dialog open={confirmExitOpen} onClose={() => setConfirmExitOpen(false)} maxWidth="xs">
+                <DialogTitle>Spiel würkli verlah?</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        S'Spiel lauft na. Wenn du gahsch, chasch nüme zrugg.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setConfirmExitOpen(false)}>Bliibe</Button>
+                    <Button
+                        color="primary"
+                        variant="contained"
+                        onClick={() => {
+                            setConfirmExitOpen(false);
+                            props.handleMenuButtonClick('exitGame');
+                        }}
+                    >
+                        Verlah
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </Container>
+    );
 }

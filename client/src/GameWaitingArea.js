@@ -1,120 +1,164 @@
 import React from "react";
 import Container from "@material-ui/core/Container";
-import Table from "@material-ui/core/Table";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import TableCell from "@material-ui/core/TableCell";
-import TableBody from "@material-ui/core/TableBody";
-import TableContainer from "@material-ui/core/TableContainer";
+import Paper from "@material-ui/core/Paper";
+import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
-import Box from "@material-ui/core/Box";
+import Chip from "@material-ui/core/Chip";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import PlayArrowIcon from "@material-ui/icons/PlayArrow";
+import ComputerIcon from "@material-ui/icons/Computer";
+import ExitToAppIcon from "@material-ui/icons/ExitToApp";
+import {makeStyles} from "@material-ui/core/styles";
+import {PlayerAvatar} from "./PlayerAvatar";
 
-export class GameWaitingArea extends React.Component {
+// Mirrors Game.isGameJoinable / isGameStartable on the server
+const MAX_PLAYERS = 11;
+const MIN_PLAYERS = 2;
 
-    constructor(props) {
-        super(props);
-
-        this.startGame = this.startGame.bind(this);
-        this.addAI = this.addAI.bind(this);
-        this.exitGame = this.exitGame.bind(this);
-    }
-
-    render() {
-        // Determine host & whether this player is host
-        let isHost = false;
-        let numPlayers = this.props.playerInfoTable.numRows;
-        let hostPlayerId = '';
-        let hostPlayerName = '';
-        if (numPlayers > 0) {
-            hostPlayerId = this.props.playerInfoTable.getValue('id', 0);
-            hostPlayerName = this.props.playerInfoTable.getValue('Name', 0);
-            isHost = this.props.playerInfo.id === hostPlayerId;
+const useStyles = makeStyles(theme => ({
+    root: {
+        paddingBottom: theme.spacing(4)
+    },
+    card: {
+        padding: theme.spacing(3),
+        [theme.breakpoints.up('sm')]: {
+            padding: theme.spacing(4)
         }
-
-        let waitMessage;
-        if (isHost) {
-            if (numPlayers > 1) {
-                waitMessage = '';
-            } else {
-                waitMessage = 'Warte uf wiiteri Spiler (mindeschtens 2).';
-            }
-        } else {
-            waitMessage = `Warte druf, dass Spiler ${hostPlayerName} s'Spiel afangt.`
+    },
+    header: {
+        display: 'flex',
+        alignItems: 'baseline',
+        justifyContent: 'space-between',
+        gap: theme.spacing(2)
+    },
+    count: {
+        whiteSpace: 'nowrap'
+    },
+    list: {
+        listStyle: 'none',
+        margin: theme.spacing(2, 0),
+        padding: 0
+    },
+    row: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: theme.spacing(1.5),
+        padding: theme.spacing(1, 0),
+        borderBottom: `1px solid ${theme.palette.divider}`,
+        '&:last-child': {
+            borderBottom: 0
         }
-
-        return (
-            <Container component="main" maxWidth="xs">
-                <TableContainer>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Name</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {this.props.playerInfoTable.rows.map((row) => (
-                                <TableRow
-                                    key={row[0]}
-                                >
-                                    <TableCell>{row[1]}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-
-                <Box
-                    mt={2}
-                >
-                    <Button
-                        variant="contained"
-                        disabled={numPlayers < 2 || !isHost}
-                        onClick={this.startGame}
-                        fullWidth
-                    >
-                        Spiel Afange
-                    </Button>
-                </Box>
-
-                <Box
-                    mt={2}
-                >
-                    <Button
-                        variant="outlined"
-                        disabled={numPlayers >= 11 || !isHost}
-                        onClick={this.addAI}
-                        fullWidth
-                    >
-                        AI Hinzuefüege
-                    </Button>
-                </Box>
-
-                <Box
-                    mt={2}
-                >
-                    <Button
-                        variant="outlined"
-                        onClick={this.exitGame}
-                        fullWidth
-                    >
-                        Spiel Verlah
-                    </Button>
-                </Box>
-                <p>{waitMessage}</p>
-            </Container>
-        )
-            ;
+    },
+    name: {
+        flex: 1,
+        fontWeight: 500
+    },
+    message: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: theme.spacing(1),
+        margin: theme.spacing(1, 0, 2),
+        color: theme.palette.text.secondary,
+        textAlign: 'center'
+    },
+    buttons: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: theme.spacing(1.5)
+    },
+    leave: {
+        display: 'flex',
+        justifyContent: 'center',
+        marginTop: theme.spacing(2)
+    },
+    leaveButton: {
+        color: theme.palette.text.secondary
     }
+}));
 
-    startGame() {
-        this.props.handleMenuButtonClick('startGame');
-    }
+export function GameWaitingArea({playerInfo, players, handleMenuButtonClick}) {
+    const classes = useStyles();
 
-    addAI() {
-        this.props.handleMenuButtonClick('addAI');
-    }
+    // The first player in the game is the host
+    const numPlayers = players.length;
+    const host = numPlayers > 0 ? players[0] : null;
+    const isHost = host !== null && host.playerId === playerInfo.id;
 
-    exitGame() {
-        this.props.handleMenuButtonClick('exitGame');
+    let message;
+    if (isHost) {
+        message = numPlayers < MIN_PLAYERS
+            ? 'Warte uf wiiteri Spiler (mindeschtens 2) – oder nimm en Computer-Spiler dezue.'
+            : 'Alli parat? Denn chasch s\'Spiel afange.';
+    } else {
+        message = host !== null ? `Warte druf, dass ${host.playerName} s'Spiel afangt.` : 'Lade…';
     }
+    const isWaiting = !isHost || numPlayers < MIN_PLAYERS;
+
+    return (
+        <Container component="main" maxWidth="sm" className={classes.root}>
+            <Paper className={classes.card}>
+                <div className={classes.header}>
+                    <Typography variant="h4" component="h1">Wartebereich</Typography>
+                    <Typography variant="body2" color="textSecondary" className={classes.count}>
+                        {numPlayers}/{MAX_PLAYERS} Spiler
+                    </Typography>
+                </div>
+                {host !== null && (
+                    <Typography variant="body2" color="textSecondary">Spiel vo {host.playerName}</Typography>
+                )}
+
+                <ul className={classes.list}>
+                    {players.map((pl, i) => (
+                        <li key={pl.playerId} className={classes.row}>
+                            <PlayerAvatar name={pl.playerName} isHuman={pl.isHuman}/>
+                            <Typography className={classes.name}>
+                                {pl.playerName}{pl.playerId === playerInfo.id ? ' (du)' : ''}
+                            </Typography>
+                            {i === 0 && <Chip size="small" label="Chef" color="primary" variant="outlined"/>}
+                        </li>
+                    ))}
+                </ul>
+
+                <div className={classes.message} role="status">
+                    {isWaiting && <CircularProgress size={18} thickness={5} color="inherit"/>}
+                    <Typography variant="body2" component="span">{message}</Typography>
+                </div>
+
+                {isHost && (
+                    <div className={classes.buttons}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            size="large"
+                            disabled={numPlayers < MIN_PLAYERS}
+                            onClick={() => handleMenuButtonClick('startGame')}
+                            startIcon={<PlayArrowIcon/>}
+                            fullWidth
+                        >
+                            Spiel afange
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            size="large"
+                            disabled={numPlayers >= MAX_PLAYERS}
+                            onClick={() => handleMenuButtonClick('addAI')}
+                            startIcon={<ComputerIcon/>}
+                            fullWidth
+                        >
+                            Computer-Spiler dezue
+                        </Button>
+                    </div>
+                )}
+            </Paper>
+
+            <div className={classes.leave}>
+                <Button className={classes.leaveButton} startIcon={<ExitToAppIcon/>}
+                        onClick={() => handleMenuButtonClick('exitGame')}>
+                    Spiel verlah
+                </Button>
+            </div>
+        </Container>
+    );
 }

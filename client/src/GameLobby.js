@@ -5,6 +5,8 @@ import Container from "@material-ui/core/Container";
 import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
 import Box from "@material-ui/core/Box";
+import Paper from "@material-ui/core/Paper";
+import AddIcon from "@material-ui/icons/Add";
 
 export class GameLobby extends React.Component {
 
@@ -85,22 +87,36 @@ export class GameLobby extends React.Component {
     render() {
 
         return (
-            <Container component="main" maxWidth="xs">
-                <Typography component="h1" variant="h5">Lobby</Typography>
-                <JoinableGamesTable
-                    joinableGames={this.state.joinableGames}
-                    handleJoinableGameSelect={this.handleJoinableGameSelect}
-                    selectedGameId={this.state.selectedGameId}
-                />
-                <Box mt={2}>
-                    <Button
-                        color="primary"
-                        onClick={this.requestNewGame}
-                        variant="contained"
-                        fullWidth
-                    >
-                        Neus Spiel
-                    </Button>
+            <Container component="main" maxWidth="sm">
+                <Typography component="h1" variant="h4">Hoi {this.props.playerInfo.name}!</Typography>
+                <Box mt={0.5} mb={3}>
+                    <Typography color="textSecondary">
+                        Tritt emene offene Spiel bi oder fang es neus a.
+                    </Typography>
+                </Box>
+                <Button
+                    color="primary"
+                    onClick={this.requestNewGame}
+                    variant="contained"
+                    size="large"
+                    startIcon={<AddIcon/>}
+                    fullWidth
+                >
+                    Neus Spiel
+                </Button>
+                <Box mt={3} mb={4}>
+                    <Paper variant="outlined">
+                        <Box px={2} pt={1.5}>
+                            <Typography variant="overline" color="textSecondary" component="h2">
+                                Offeni Spiel
+                            </Typography>
+                        </Box>
+                        <JoinableGamesTable
+                            joinableGames={this.state.joinableGames}
+                            handleJoinableGameSelect={this.handleJoinableGameSelect}
+                            selectedGameId={this.state.selectedGameId}
+                        />
+                    </Paper>
                 </Box>
             </Container>
         );

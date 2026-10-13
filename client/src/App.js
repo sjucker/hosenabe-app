@@ -5,18 +5,18 @@ import AppBar from "@material-ui/core/AppBar";
 import Typography from "@material-ui/core/Typography";
 import Toolbar from "@material-ui/core/Toolbar";
 import CssBaseline from "@material-ui/core/CssBaseline";
-import {ThemeProvider} from "@material-ui/styles";
+import {ThemeProvider} from "@material-ui/core/styles";
 import {GameLobby} from "./GameLobby";
 import {Game} from "./Game";
-import {Box, createTheme} from "@material-ui/core";
-import Switch from "@material-ui/core/Switch";
-import SwipeableDrawer from "@material-ui/core/SwipeableDrawer";
+import Box from "@material-ui/core/Box";
+import Chip from "@material-ui/core/Chip";
 import IconButton from "@material-ui/core/IconButton";
-import MenuIcon from '@material-ui/icons/Menu';
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import ListItem from "@material-ui/core/ListItem";
-import List from "@material-ui/core/List";
+import Tooltip from "@material-ui/core/Tooltip";
+import Brightness4Icon from '@material-ui/icons/Brightness4';
+import Brightness7Icon from '@material-ui/icons/Brightness7';
+import PersonIcon from '@material-ui/icons/Person';
 import api from "./api";
+import {createAppTheme, tokens} from "./theme";
 
 
 // Helper functions
@@ -50,6 +50,46 @@ function storePlayer(playerInfo) {
     }
 }
 
+// Colour mode preference (per browser); defaults to the system setting
+
+const DARK_MODE_STORAGE_KEY = 'hosenabe.darkMode';
+
+function loadDarkModePreference() {
+    try {
+        const stored = window.localStorage.getItem(DARK_MODE_STORAGE_KEY);
+        if (stored !== null) {
+            return stored === 'true';
+        }
+    } catch (e) {
+        // Storage unavailable -- fall through to the system setting
+    }
+    if (window.matchMedia) {
+        return !window.matchMedia('(prefers-color-scheme: light)').matches;
+    }
+    return true;
+}
+
+function storeDarkModePreference(useDarkMode) {
+    try {
+        window.localStorage.setItem(DARK_MODE_STORAGE_KEY, String(useDarkMode));
+    } catch (e) {
+        // Storage unavailable -- preference only lasts for this visit
+    }
+}
+
+// Brand mark: three fanned cards
+function BrandMark() {
+    return (
+        <svg width="30" height="26" viewBox="0 0 30 26" aria-hidden="true" style={{marginRight: 10, flex: 'none'}}>
+            <rect x="3" y="4" width="12" height="18" rx="2" fill="#f3efe2" transform="rotate(-16 9 22)"/>
+            <rect x="9" y="2" width="12" height="18" rx="2" fill="#ffffff" stroke={tokens.header} strokeWidth="1"/>
+            <rect x="15" y="4" width="12" height="18" rx="2" fill={tokens.gold} stroke={tokens.header}
+                  strokeWidth="1" transform="rotate(16 21 22)"/>
+            <circle cx="15" cy="11" r="2.6" fill="#c0392b"/>
+        </svg>
+    );
+}
+
 // App
 class App extends React.Component {
 
@@ -61,14 +101,14 @@ class App extends React.Component {
             hasPlayerRegistered: false,
             hasPlayerJoinedGame: false,
             hasGameStarted: false,
-            drawerOpen: false,
-            useDarkMode: true,
+            useDarkMode: loadDarkModePreference(),
             isRestoringSession: loadStoredPlayer() !== null
         }
 
         this.setPlayerInfo = this.setPlayerInfo.bind(this);
         this.setGameJoined = this.setGameJoined.bind(this);
         this.requestReconnect = this.requestReconnect.bind(this);
+        this.toggleDarkMode = this.toggleDarkMode.bind(this);
         this.handleReconnectResponse = this.handleReconnectResponse.bind(this);
     }
 
@@ -119,6 +159,12 @@ class App extends React.Component {
         }
     }
 
+    toggleDarkMode() {
+        const useDarkMode = !this.state.useDarkMode;
+        storeDarkModePreference(useDarkMode);
+        this.setState({useDarkMode: useDarkMode});
+    }
+
     setGameJoined(value) {
         this.setState({
             hasPlayerJoinedGame: value
@@ -127,17 +173,10 @@ class App extends React.Component {
 
     render() {
 
-        let playerName;
-        if (this.state.hasPlayerRegistered) {
-            playerName = ` (${this.state.playerInfo.name})`;
-        } else {
-            playerName = '';
-        }
-
         let pageElement;
         if (this.state.isRestoringSession) {
             pageElement = (
-                <Typography align="center">Verbinde...</Typography>
+                <Typography align="center" color="textSecondary">Verbinde...</Typography>
             );
         } else if (!this.state.hasPlayerRegistered) {
             pageElement = (
@@ -155,60 +194,40 @@ class App extends React.Component {
             );
         }
 
-        const theme = createTheme({
-            palette: {
-                type: this.state.useDarkMode ? 'dark' : 'light',
-                primary: {
-                    main: '#c24c4c'
-                }
-            },
-        });
+        const theme = createAppTheme(this.state.useDarkMode);
+        const modeLabel = this.state.useDarkMode ? 'Häll' : 'Dunkel';
 
         return (
             <ThemeProvider theme={theme}>
                 <CssBaseline/>
-                <AppBar position="static">
+                <AppBar position="sticky" elevation={0} style={{backgroundColor: tokens.header, color: '#ffffff'}}>
                     <Toolbar>
-                        <Typography variant="h6" style={{flexGrow: 1}}>
-                            HOSENABE {playerName}
+                        <BrandMark/>
+                        <Typography variant="h6" component="div" style={{flexGrow: 1, fontSize: '1.3rem'}}>
+                            Hosenabe
                         </Typography>
-                        <IconButton
-                            color="inherit"
-                            onClick={() => {
-                                this.setState({...this.state, drawerOpen: true})
-                            }}
-                        >
-                            <MenuIcon/>
-                        </IconButton>
+                        {this.state.hasPlayerRegistered && (
+                            <Chip
+                                icon={<PersonIcon style={{color: 'inherit'}}/>}
+                                label={this.state.playerInfo.name}
+                                size="small"
+                                style={{
+                                    color: '#ffffff',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.14)',
+                                    fontWeight: 500,
+                                    maxWidth: 160
+                                }}
+                            />
+                        )}
+                        <Tooltip title={modeLabel}>
+                            <IconButton color="inherit" edge="end" onClick={this.toggleDarkMode}
+                                        aria-label={modeLabel} style={{marginLeft: 8}}>
+                                {this.state.useDarkMode ? <Brightness7Icon/> : <Brightness4Icon/>}
+                            </IconButton>
+                        </Tooltip>
                     </Toolbar>
                 </AppBar>
-                <SwipeableDrawer
-                    anchor={"left"}
-                    open={this.state.drawerOpen}
-                    onOpen={() => {
-                        this.setState({...this.state, drawerOpen: true})
-                    }}
-                    onClose={() => {
-                        this.setState({...this.state, drawerOpen: false})
-                    }}
-                >
-                    <List>
-                        <ListItem>
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        checked={this.state.useDarkMode}
-                                        onChange={(event) => {
-                                            this.setState({...this.state, useDarkMode: event.target.checked})
-                                        }}/>
-                                }
-                                label="Dark Mode"
-                            />
-                        </ListItem>
-                    </List>
-                </SwipeableDrawer>
-                <Box
-                    mt={2}>
+                <Box pt={3}>
                     {pageElement}
                 </Box>
             </ThemeProvider>
