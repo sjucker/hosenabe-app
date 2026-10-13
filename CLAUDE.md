@@ -15,7 +15,7 @@ User-facing strings (log messages, validation errors, UI) are in Swiss German, e
 
 All commands run from the repo root unless noted.
 
-- `npm run clean-install`: `npm ci` for both server and client. The client install currently fails with ERESOLVE because `@testing-library/react@16` wants React 18+ while the app is on React 17. Use `cd client && npm ci --legacy-peer-deps` until that's fixed.
+- `npm run clean-install`: `npm ci` for both server and client.
 - `npm run dev`: runs the server (`ts-node-dev src/server.ts`, port 3000) and the CRA dev server (port 3001, from `client/.env.development`) in parallel. In development the client connects to `localhost:3000` (see `client/src/api.js`).
 - `npm run build`: builds the client into `client/build`, then compiles the server with `tsc` into `dist/`.
 - `npm run build-ts`: compiles only the server.
