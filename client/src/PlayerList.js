@@ -55,13 +55,19 @@ const useStyles = makeStyles(theme => ({
         fontSize: '0.75rem',
         color: theme.palette.text.secondary
     },
+    spectators: {
+        marginTop: theme.spacing(1),
+        padding: theme.spacing(0, 1),
+        fontSize: '0.8rem',
+        color: theme.palette.text.secondary
+    },
     turnStatus: {
         color: theme.palette.type === 'dark' ? tokens.gold : tokens.goldDark,
         fontWeight: 600
     }
 }));
 
-export function PlayerList({players, currentPlayerId, thisPlayerId, isRoundOngoing}) {
+export function PlayerList({players, spectators, currentPlayerId, thisPlayerId, isRoundOngoing}) {
     const classes = useStyles();
 
     return (
@@ -92,6 +98,11 @@ export function PlayerList({players, currentPlayerId, thisPlayerId, isRoundOngoi
                     );
                 })}
             </ul>
+            {spectators.length > 0 && (
+                <Typography className={classes.spectators}>
+                    Zueschauer: {spectators.map(sp => sp.playerName).join(', ')}
+                </Typography>
+            )}
         </Paper>
     );
 }

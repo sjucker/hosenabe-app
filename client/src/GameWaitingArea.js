@@ -53,6 +53,9 @@ const useStyles = makeStyles(theme => ({
         flex: 1,
         fontWeight: 500
     },
+    spectators: {
+        marginBottom: theme.spacing(2)
+    },
     message: {
         display: 'flex',
         flexDirection: 'column',
@@ -77,7 +80,7 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-export function GameWaitingArea({playerInfo, players, handleMenuButtonClick}) {
+export function GameWaitingArea({playerInfo, players, spectators, isSpectator, handleMenuButtonClick}) {
     const classes = useStyles();
 
     // The first player in the game is the host
@@ -90,6 +93,8 @@ export function GameWaitingArea({playerInfo, players, handleMenuButtonClick}) {
         message = numPlayers < MIN_PLAYERS
             ? 'Warte uf wiiteri Spiler (mindeschtens 2) – oder nimm en Computer-Spiler dezue.'
             : 'Alli parat? Denn chasch s\'Spiel afange.';
+    } else if (isSpectator) {
+        message = host !== null ? `Du luegsch zue. S'Spiel fangt a, sobald ${host.playerName} es startet.` : 'Lade…';
     } else {
         message = host !== null ? `Warte druf, dass ${host.playerName} s'Spiel afangt.` : 'Lade…';
     }
@@ -119,6 +124,12 @@ export function GameWaitingArea({playerInfo, players, handleMenuButtonClick}) {
                         </li>
                     ))}
                 </ul>
+
+                {spectators.length > 0 && (
+                    <Typography variant="body2" color="textSecondary" className={classes.spectators}>
+                        Zueschauer: {spectators.map(sp => sp.playerName).join(', ')}
+                    </Typography>
+                )}
 
                 <div className={classes.message} role="status">
                     {isWaiting && <CircularProgress size={18} thickness={5} color="inherit"/>}
@@ -156,7 +167,7 @@ export function GameWaitingArea({playerInfo, players, handleMenuButtonClick}) {
             <div className={classes.leave}>
                 <Button className={classes.leaveButton} startIcon={<ExitToAppIcon/>}
                         onClick={() => handleMenuButtonClick('exitGame')}>
-                    Spiel verlah
+                    {isSpectator ? 'Nüme zueluege' : 'Spiel verlah'}
                 </Button>
             </div>
         </Container>

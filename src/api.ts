@@ -34,6 +34,11 @@ export interface JoinGameMessage {
     gameId: string
 }
 
+export interface SpectateGameMessage {
+    playerId: string,
+    gameId: string
+}
+
 export interface SwitchMessage {
     playerId: string,
     playerCardName: string,
@@ -82,8 +87,8 @@ export class API {
     private emitGameUpdate(gameId: string, playerId: string | null = null): void {
         // Emits (personalized) game update 
         const game: gm.Game = this.lobby.getGame(gameId);
-        if (playerId == null) { // send update to all palyers in game
-            const playerIds: string[] = game.getPlayerIds();
+        if (playerId == null) { // send update to all players and spectators in game
+            const playerIds: string[] = game.getPlayerIds().concat(game.getSpectatorIds());
             for (const playerId of playerIds) {
                 const socketId: string = this.lobby.getLobbyPlayer(playerId).socketId;
                 const gameState: gm.GameState = game.getGameState(playerId);
@@ -100,10 +105,11 @@ export class API {
         const game: gm.Game = this.lobby.getGame(gameId);
         const player = this.lobby.getLobbyPlayer(playerId);
 
-        const trashTalkMessage = `${player.player.name}: "${message}"`;
+        const name: string = player.isSpectator ? `${player.player.name} (Zueschauer)` : player.player.name;
+        const trashTalkMessage = `${name}: "${message}"`;
         console.log(trashTalkMessage);
 
-        for (const id of game.getPlayerIds()) {
+        for (const id of game.getPlayerIds().concat(game.getSpectatorIds())) {
             const socketId: string = this.lobby.getLobbyPlayer(id).socketId;
             this.io.to(socketId).emit('trashtalk', trashTalkMessage);
         }
@@ -127,7 +133,7 @@ export class API {
             if (lobbyPlayer.isInGame) {
                 const gameId: string = this.lobby.getPlayerGameId(playerId);
                 this.lobby.removePlayerFromGame(playerId);
-                this.lobby.cleanUpGame(gameId);
+                this.sendSpectatorsToLobby(gameId, this.lobby.cleanUpGame(gameId));
                 if (this.lobby.hasGame(gameId)) { // bc game might have been auto removed when no players left
                     this.emitGameUpdate(gameId);
                 }
@@ -137,6 +143,21 @@ export class API {
         } catch (e) {
             console.log(e);
         }
+    }
+
+    private sendSpectatorsToLobby(gameId: string, spectatorIds: string[]): void {
+        // Spectators of a game that was removed go back to the lobby
+        for (const spectatorId of spectatorIds) {
+            const socketId: string = this.lobby.getLobbyPlayer(spectatorId).socketId;
+            this.io.in(socketId).socketsLeave(gameId);
+            this.io.in(socketId).socketsJoin('lobby');
+            this.io.to(socketId).emit('response game exit', {});
+        }
+    }
+
+    private canPlayerControlGame(playerId: string): boolean {
+        // Spectators can't start the game or rounds, nor add AI players
+        return this.lobby.isPlayerInGame(playerId) && !this.lobby.isSpectating(playerId);
     }
 
     private emitPlayerNotFoundError(socket: Socket): void {
@@ -232,6 +253,30 @@ export class API {
             }
         });
 
+        // Player requests to watch an existing game (sees all hands, can't play)
+        socket.on('request spectate game', (message: SpectateGameMessage) => {
+
+            if (!this.lobby.hasPlayer(message.playerId)) {
+                this.emitPlayerNotFoundError(socket);
+                return;
+            }
+
+            try {
+                if (!this.lobby.isPlayerInGame(message.playerId) &&
+                    this.lobby.hasGame(message.gameId)) {
+                    this.lobby.addSpectatorToGame(message.playerId, message.gameId);
+
+                    socket.join(message.gameId);
+                    socket.leave('lobby');
+
+                    socket.emit('response join game', {});
+                    this.emitGameUpdate(message.gameId); // Players see the new spectator
+                }
+            } catch (e) {
+                console.log(e);
+            }
+        });
+
         // Player requests to add an AI player to their game
         socket.on('request add ai', (message: PlayerIdMessage) => {
 
@@ -241,7 +286,7 @@ export class API {
             }
 
             try {
-                if (this.lobby.isPlayerInGame(message.playerId)) {
+                if (this.canPlayerControlGame(message.playerId)) {
                     // Get the game
                     const game: gm.Game = this.lobby.getGame(this.lobby.getPlayerGameId(message.playerId));
 
@@ -283,7 +328,7 @@ export class API {
                 if (this.lobby.isPlayerInGame(playerId)) {
                     const gameId: string = this.lobby.getPlayerGameId(playerId);
                     this.lobby.removePlayerFromGame(playerId);
-                    this.lobby.cleanUpGame(gameId);
+                    this.sendSpectatorsToLobby(gameId, this.lobby.cleanUpGame(gameId));
 
                     socket.join('lobby');
                     socket.leave(gameId);
@@ -370,7 +415,7 @@ export class API {
             }
 
             try {
-                if (this.lobby.isPlayerInGame(message.playerId)) {
+                if (this.canPlayerControlGame(message.playerId)) {
                     const game: gm.Game = this.lobby.getGame(this.lobby.getPlayerGameId(message.playerId));
                     if (game.isGameStartable()) {
                         game.startGame();
@@ -518,7 +563,7 @@ export class API {
             }
 
             try {
-                if (this.lobby.isPlayerInGame(message.playerId)) {
+                if (this.canPlayerControlGame(message.playerId)) {
                     const game: gm.Game = this.lobby.getGame(this.lobby.getPlayerGameId(message.playerId));
                     if (!game.getIsRoundOngoing() && game.getIsGameStarted() && !game.getIsGameEnded()) {
                         game.startRound();

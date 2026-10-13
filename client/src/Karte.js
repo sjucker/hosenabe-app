@@ -37,6 +37,10 @@ const useStyles = makeStyles(theme => ({
             width: 'min(27vw, 124px, 12.5vh)'
         }
     },
+    medium: {
+        width: 'min(14vw, 60px)',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.3), 0 3px 8px rgba(0,0,0,0.2)'
+    },
     small: {
         width: 38,
         boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
@@ -74,7 +78,7 @@ const useStyles = makeStyles(theme => ({
 
 export function Karte(props) {
     const classes = useStyles();
-    const sizeClass = props.size === 'small' ? classes.small : classes.large;
+    const sizeClass = classes[props.size] || classes.large;
 
     if (props.placeholder) {
         return <div className={cx(classes.card, sizeClass, classes.placeholder)} aria-hidden="true"/>;
@@ -106,5 +110,5 @@ Karte.propTypes = {
     selected: PropTypes.bool,
     selectable: PropTypes.bool,
     placeholder: PropTypes.bool,
-    size: PropTypes.oneOf(['large', 'small'])
+    size: PropTypes.oneOf(['large', 'medium', 'small'])
 };

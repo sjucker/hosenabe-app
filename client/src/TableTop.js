@@ -5,6 +5,7 @@ import cx from "./cx";
 import {Karte} from "./Karte";
 import {analyzeHand, formatPoints} from "./handValue";
 import {tokens} from "./theme";
+import {TokenPips} from "./TokenPips";
 
 const useStyles = makeStyles(theme => ({
     felt: {
@@ -149,6 +150,59 @@ const useStyles = makeStyles(theme => ({
         myTurnPill: {
             animation: 'none'
         }
+    },
+    // Spectator view: every player's hand
+    hands: {
+        listStyle: 'none',
+        margin: theme.spacing(1.5, 0, 0),
+        padding: 0
+    },
+    handRow: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: theme.spacing(1.5),
+        padding: theme.spacing(1, 1.5),
+        borderRadius: 12,
+        transition: 'background-color 200ms ease',
+        '& + &': {
+            marginTop: theme.spacing(0.5)
+        },
+        [theme.breakpoints.down('xs')]: {
+            gap: theme.spacing(1),
+            padding: theme.spacing(0.75, 1)
+        }
+    },
+    handTurn: {
+        background: 'rgba(232, 179, 58, 0.18)',
+        boxShadow: `inset 3px 0 0 ${tokens.gold}`
+    },
+    handOut: {
+        opacity: 0.45
+    },
+    handInfo: {
+        flex: 1,
+        minWidth: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        gap: 4
+    },
+    handName: {
+        maxWidth: '100%',
+        fontWeight: 600,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap'
+    },
+    handMeta: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: theme.spacing(1)
+    },
+    handCards: {
+        display: 'flex',
+        gap: 4,
+        flex: 'none'
     }
 }));
 
@@ -173,40 +227,8 @@ function CardRow({cardNames, highlighted, rowName, selectable, placeholder, hand
 export function TableTop(props) {
     const classes = useStyles();
 
-    const handValue = analyzeHand(props.playerCardNames);
     const isHandSelected = props.playerCardsHighlighted.some(h => h);
     const isTableSelected = props.tableCardsHighlighted.some(h => h);
-
-    // Status pills
-    let statusPill;
-    if (props.isGameEnded) {
-        statusPill = <span className={classes.pill}>S'Spiel isch fertig</span>;
-    } else if (!props.isRoundOngoing) {
-        statusPill = <span className={classes.pill}>Rundi fertig</span>;
-    } else if (props.myTurn) {
-        statusPill = <span className={cx(classes.pill, classes.myTurnPill)}>Du bisch dra!</span>;
-    } else if (props.currentPlayerName) {
-        statusPill = <span className={classes.pill}>{props.currentPlayerName} isch dra</span>;
-    }
-
-    let chlopfPill = null;
-    if (props.isRoundOngoing && props.isChlopfState) {
-        const turnsText = props.numTurnsLeft === 1 ? 'letschte Zug' : `na ${props.numTurnsLeft} Züg`;
-        chlopfPill = <span className={cx(classes.pill, classes.chlopfPill)}>Gchlopft · {turnsText}</span>;
-    }
-
-    // Value of the own hand
-    let valuePill = null;
-    if (handValue !== null) {
-        let text = `${formatPoints(handValue.points)} Pünkt`;
-        if (handValue.hasFeuer) {
-            text = 'Füür!';
-        } else if (handValue.hasHosenaben) {
-            text = 'Hosenabe!';
-        }
-        const isSpecial = handValue.hasFeuer || handValue.hasHosenaben;
-        valuePill = <span className={cx(classes.valuePill, isSpecial && classes.specialValue)}>{text}</span>;
-    }
 
     // Guidance for the switch action
     let hint = '';
@@ -226,10 +248,15 @@ export function TableTop(props) {
         <section className={classes.felt} aria-label="Spieltisch">
             <div className={classes.statusBar}>
                 <span className={classes.round}>Rundi {props.currentRound + 1}</span>
-                <div className={classes.pills} role="status">
-                    {chlopfPill}
-                    {statusPill}
-                </div>
+                <StatusPills
+                    classes={classes}
+                    isGameEnded={props.isGameEnded}
+                    isRoundOngoing={props.isRoundOngoing}
+                    isChlopfState={props.isChlopfState}
+                    numTurnsLeft={props.numTurnsLeft}
+                    myTurn={props.myTurn}
+                    currentPlayerName={props.currentPlayerName}
+                />
             </div>
 
             <div className={classes.section}>
@@ -250,7 +277,7 @@ export function TableTop(props) {
             <div className={classes.section}>
                 <div className={classes.sectionHeader}>
                     <Typography component="h2" className={classes.label}>Dini Hand</Typography>
-                    {valuePill}
+                    <HandValuePill classes={classes} cardNames={props.playerCardNames}/>
                 </div>
                 <CardRow
                     cardNames={props.playerCardNames}
@@ -263,6 +290,112 @@ export function TableTop(props) {
             </div>
 
             <div className={classes.hint}>{hint}</div>
+        </section>
+    );
+}
+
+function StatusPills({classes, isGameEnded, isRoundOngoing, isChlopfState, numTurnsLeft, myTurn, currentPlayerName}) {
+    let statusPill = null;
+    if (isGameEnded) {
+        statusPill = <span className={classes.pill}>S'Spiel isch fertig</span>;
+    } else if (!isRoundOngoing) {
+        statusPill = <span className={classes.pill}>Rundi fertig</span>;
+    } else if (myTurn) {
+        statusPill = <span className={cx(classes.pill, classes.myTurnPill)}>Du bisch dra!</span>;
+    } else if (currentPlayerName) {
+        statusPill = <span className={classes.pill}>{currentPlayerName} isch dra</span>;
+    }
+
+    let chlopfPill = null;
+    if (isRoundOngoing && isChlopfState) {
+        const turnsText = numTurnsLeft === 1 ? 'letschte Zug' : `na ${numTurnsLeft} Züg`;
+        chlopfPill = <span className={cx(classes.pill, classes.chlopfPill)}>Gchlopft · {turnsText}</span>;
+    }
+
+    return (
+        <div className={classes.pills} role="status">
+            {chlopfPill}
+            {statusPill}
+        </div>
+    );
+}
+
+function HandValuePill({classes, cardNames}) {
+    const handValue = analyzeHand(cardNames);
+    if (handValue === null) {
+        return null;
+    }
+    let text = `${formatPoints(handValue.points)} Pünkt`;
+    if (handValue.hasFeuer) {
+        text = 'Füür!';
+    } else if (handValue.hasHosenaben) {
+        text = 'Hosenabe!';
+    }
+    const isSpecial = handValue.hasFeuer || handValue.hasHosenaben;
+    return <span className={cx(classes.valuePill, isSpecial && classes.specialValue)}>{text}</span>;
+}
+
+export function SpectatorTable(props) {
+    // Table as seen by a spectator: the table cards plus every player's hand
+    const classes = useStyles();
+    const currentPlayer = props.players.find(pl => pl.playerId === props.currentPlayerId);
+
+    return (
+        <section className={classes.felt} aria-label="Spieltisch">
+            <div className={classes.statusBar}>
+                <span className={classes.round}>Rundi {props.currentRound + 1}</span>
+                <StatusPills
+                    classes={classes}
+                    isGameEnded={props.isGameEnded}
+                    isRoundOngoing={props.isRoundOngoing}
+                    isChlopfState={props.isChlopfState}
+                    numTurnsLeft={props.numTurnsLeft}
+                    myTurn={false}
+                    currentPlayerName={currentPlayer ? currentPlayer.playerName : null}
+                />
+            </div>
+
+            <div className={classes.section}>
+                <div className={classes.sectionHeader}>
+                    <Typography component="h2" className={classes.label}>Tisch</Typography>
+                </div>
+                <CardRow
+                    cardNames={props.tableCardNames}
+                    highlighted={[false, false, false]}
+                    rowName="table"
+                    selectable={false}
+                    handleCardClick={() => null}
+                />
+            </div>
+
+            <div className={classes.divider}/>
+
+            <ul className={classes.hands} aria-label="Händ vo de Spiler">
+                {props.players.map(pl => {
+                    const hand = props.playerHands.find(h => h.playerId === pl.playerId);
+                    const cardNames = hand ? hand.cards.map(cr => cr.name) : [];
+                    const isOut = pl.tokens <= 0;
+                    const isTurn = props.isRoundOngoing && pl.playerId === props.currentPlayerId;
+                    return (
+                        <li key={pl.playerId}
+                            className={cx(classes.handRow, isTurn && classes.handTurn, isOut && classes.handOut)}
+                            aria-current={isTurn ? 'true' : undefined}>
+                            <div className={classes.handInfo}>
+                                <span className={classes.handName}>{pl.playerName}</span>
+                                <div className={classes.handMeta}>
+                                    <TokenPips tokens={pl.tokens}/>
+                                    <HandValuePill classes={classes} cardNames={cardNames}/>
+                                </div>
+                            </div>
+                            <div className={classes.handCards}>
+                                {cardNames.length === 3
+                                    ? cardNames.map(cardName => <Karte key={cardName} cardName={cardName} size="medium"/>)
+                                    : [0, 1, 2].map(i => <Karte key={i} placeholder size="medium"/>)}
+                            </div>
+                        </li>
+                    );
+                })}
+            </ul>
         </section>
     );
 }

@@ -9,6 +9,7 @@ const AI_NAME_CANDIDATES = ['Trudi', 'Fritzli', 'Köbi', 'Ruedi',
 export interface LobbyPlayer {
     player: gm.Player,
     isInGame: boolean,
+    isSpectator: boolean, // only meaningful while isInGame
     gameId: string | null,
     socketId: string
 }
@@ -90,6 +91,7 @@ export class Lobby {
         const lobbyPlayer: LobbyPlayer = {
             player: player,
             isInGame: false,
+            isSpectator: false,
             gameId: null,
             socketId: socketId
         }
@@ -218,6 +220,23 @@ export class Lobby {
         lobbyPlayer.gameId = game.id;
     }
 
+    public addSpectatorToGame(playerId: string, gameId: string): void {
+        const lobbyPlayer: LobbyPlayer = this.getLobbyPlayer(playerId);
+        if (lobbyPlayer.isInGame) {
+            throw new Error('Cannot add spectator to game; player already in game.');
+        }
+        const game: gm.Game = this.getGame(gameId);
+        game.addSpectator(lobbyPlayer.player);
+        lobbyPlayer.isInGame = true;
+        lobbyPlayer.isSpectator = true;
+        lobbyPlayer.gameId = game.id;
+    }
+
+    public isSpectating(playerId: string): boolean {
+        const lobbyPlayer: LobbyPlayer = this.getLobbyPlayer(playerId);
+        return lobbyPlayer.isInGame && lobbyPlayer.isSpectator;
+    }
+
     public addAIPlayerToGame(gameId: string): void {
 
         if (!this.canAddPlayerToGame('some_player', gameId)) {
@@ -255,18 +274,30 @@ export class Lobby {
         }
 
         const game: gm.Game = this.getGame(this.getPlayerGameId(playerId));
-        game.removePlayer(lobbyPlayer.player.id);
+        if (lobbyPlayer.isSpectator) {
+            game.removeSpectator(lobbyPlayer.player.id);
+        } else {
+            game.removePlayer(lobbyPlayer.player.id);
+        }
         lobbyPlayer.isInGame = false;
+        lobbyPlayer.isSpectator = false;
         lobbyPlayer.gameId = null;
     }
 
-    public cleanUpGame(gameId: string): void {
-        // Removes game if empty
+    public cleanUpGame(gameId: string): string[] {
+        // Removes game if no human players are left
+        // Returns the ids of the spectators that were sent back to the lobby
         const game: gm.Game = this.getGame(gameId);
-        if (game.getNHumanPlayers() == 0) {
-            this.removeAndKillAIPlayers(game.id);
-            this.removeGame(game.id);
+        if (game.getNHumanPlayers() > 0) {
+            return [];
         }
+        this.removeAndKillAIPlayers(game.id);
+        const spectatorIds: string[] = game.getSpectatorIds();
+        for (const spectatorId of spectatorIds) {
+            this.removePlayerFromGame(spectatorId);
+        }
+        this.removeGame(game.id);
+        return spectatorIds;
     }
 
     public isPlayerInGame(playerId: string): boolean {

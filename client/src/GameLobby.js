@@ -22,6 +22,7 @@ export class GameLobby extends React.Component {
         this.handleServerError = this.handleServerError.bind(this);
         this.requestNewGame = this.requestNewGame.bind(this);
         this.handleJoinableGameSelect = this.handleJoinableGameSelect.bind(this);
+        this.handleSpectateGame = this.handleSpectateGame.bind(this);
         this.handleJoinGame = this.handleJoinGame.bind(this);
     }
 
@@ -63,6 +64,14 @@ export class GameLobby extends React.Component {
         api.emitToServer('request join game', joinGameRequest);
     }
 
+    handleSpectateGame(gameId) {
+        const spectateGameRequest = {
+            playerId: this.props.playerInfo.id,
+            gameId: gameId
+        };
+        api.emitToServer('request spectate game', spectateGameRequest);
+    }
+
     handleServerError(message) {
         switch (message.type) {
             case 'player not found':
@@ -91,7 +100,7 @@ export class GameLobby extends React.Component {
                 <Typography component="h1" variant="h4">Hoi {this.props.playerInfo.name}!</Typography>
                 <Box mt={0.5} mb={3}>
                     <Typography color="textSecondary">
-                        Tritt emene offene Spiel bi oder fang es neus a.
+                        Tritt emene offene Spiel bi, lueg zue oder fang es neus a.
                     </Typography>
                 </Box>
                 <Button
@@ -108,12 +117,13 @@ export class GameLobby extends React.Component {
                     <Paper variant="outlined">
                         <Box px={2} pt={1.5}>
                             <Typography variant="overline" color="textSecondary" component="h2">
-                                Offeni Spiel
+                                Spiel
                             </Typography>
                         </Box>
                         <JoinableGamesTable
                             joinableGames={this.state.joinableGames}
                             handleJoinableGameSelect={this.handleJoinableGameSelect}
+                            handleSpectateGame={this.handleSpectateGame}
                             selectedGameId={this.state.selectedGameId}
                         />
                     </Paper>

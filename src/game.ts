@@ -374,17 +374,31 @@ export interface PlayerOverview {
     }[]
 }
 
+export interface PlayerHand {
+    readonly playerId: string,
+    readonly cards: Card[]
+}
+
+export interface SpectatorInfo {
+    readonly playerId: string,
+    readonly playerName: string
+}
+
 export interface GameState {
 
     readonly gameId: string,
     readonly thisPlayerId: string,
+    readonly isSpectator: boolean,
 
     // Cards
     readonly thisPlayerCards: Card[],
     readonly tableCards: Card[],
+    // Hands of all players -- only filled for spectators
+    readonly playerHands: PlayerHand[],
 
     // Players
     readonly playerOverview: PlayerOverview,
+    readonly spectators: SpectatorInfo[],
 
     // Allowed actions
     readonly allowedActions: Action[],
@@ -414,6 +428,7 @@ export class Game {
     private deck: CardStack;
     private table: CardStack;
     private players: Player[];
+    private spectators: Player[];
 
     private isGameStarted: boolean;
     private isGameEnded: boolean;
@@ -439,6 +454,7 @@ export class Game {
 
         // Players
         this.players = [];
+        this.spectators = [];
         this.addPlayer(player);
 
         // Game state
@@ -539,6 +555,32 @@ export class Game {
         return this.players.some(pl => pl.id === playerId);
     }
 
+    // Spectator controls: spectators follow the game (seeing all hands) but never take part in it
+    public addSpectator(player: Player): void {
+        if (this.hasPlayer(player.id) || this.hasSpectator(player.id)) {
+            throw new Error('Cannot add spectator to game.');
+        }
+        this.spectators.push(player);
+        this.addLogMessage(`${player.name} luegt zue.`);
+    }
+
+    public removeSpectator(playerId: string): void {
+        const idx: number = this.spectators.findIndex(sp => sp.id === playerId);
+        if (idx < 0) {
+            throw new Error('Cannot remove spectator; spectator not found.');
+        }
+        const spectator: Player = this.spectators.splice(idx, 1)[0];
+        this.addLogMessage(`${spectator.name} luegt nüme zue.`);
+    }
+
+    public hasSpectator(playerId: string): boolean {
+        return this.spectators.some(sp => sp.id === playerId);
+    }
+
+    public getSpectatorIds(): string[] {
+        return this.spectators.map(sp => sp.id);
+    }
+
     public getPlayer(playerId: string): Player {
         const player: Player | undefined = this.players.find(pl => pl.id === playerId);
         if (player === undefined) {
@@ -605,6 +647,9 @@ export class Game {
     }
 
     public canPlayerTakeAction(playerId: string, action: Action): boolean {
+        if (!this.hasPlayer(playerId)) { // e.g. spectators
+            return false;
+        }
         const allowedActions: Action[] = this.getAllowedActions(playerId);
         return allowedActions.includes(action);
     }
@@ -667,10 +712,11 @@ export class Game {
     }
 
     public getGameState(playerId: string): GameState {
-        // Returns game state from perspective of a player
+        // Returns game state from perspective of a player or spectator
         // All objects are clones, so the game-state is immutable
 
-        if (!this.hasPlayer(playerId)) {
+        const isSpectator: boolean = this.hasSpectator(playerId);
+        if (!isSpectator && !this.hasPlayer(playerId)) {
             throw new RangeError('Player not found.');
         }
 
@@ -689,12 +735,17 @@ export class Game {
             gameId: this.id,
 
             thisPlayerId: playerId,
+            isSpectator: isSpectator,
 
-            thisPlayerCards: this.getPlayer(playerId).hand.getCards(),
+            thisPlayerCards: isSpectator ? [] : this.getPlayer(playerId).hand.getCards(),
             tableCards: this.getTable().getCards(),
+            playerHands: isSpectator
+                ? this.players.map(pl => ({playerId: pl.id, cards: pl.hand.getCards()}))
+                : [],
 
             playerOverview: playerOverview,
-            allowedActions: this.getAllowedActions(playerId),
+            spectators: this.spectators.map(sp => ({playerId: sp.id, playerName: sp.name})),
+            allowedActions: isSpectator ? [] : this.getAllowedActions(playerId),
             isGameStarted: this.isGameStarted,
             isGameEnded: this.isGameEnded,
             isRoundOngoing: this.isRoundOngoing,

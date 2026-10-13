@@ -1,7 +1,7 @@
 // Game
 import React, {useState} from "react";
 import {Scorecard} from "./Scorecard";
-import {TableTop} from "./TableTop";
+import {SpectatorTable, TableTop} from "./TableTop";
 import {PlayerList} from "./PlayerList";
 import {GameLog} from "./GameLog";
 import Container from "@material-ui/core/Container";
@@ -125,8 +125,8 @@ export function GameScreen(props) {
     }
 
     function handleExitClick() {
-        // Leaving a running game loses the seat for good, so ask first
-        if (props.isGameEnded) {
+        // Leaving a running game loses the seat for good, so ask first (spectators lose nothing)
+        if (props.isGameEnded || props.isSpectator) {
             props.handleMenuButtonClick('exitGame');
         } else {
             setConfirmExitOpen(true);
@@ -141,7 +141,7 @@ export function GameScreen(props) {
                 scorecard={props.scorecardInfo.scorecard}
                 thisPlayerId={props.playerInfo.id}
                 isGameEnded={props.isGameEnded}
-                canStartRound={props.myTokens > 0}
+                canStartRound={!props.isSpectator && props.myTokens > 0}
                 handleMenuButtonClick={props.handleMenuButtonClick}
             />
         );
@@ -151,85 +151,105 @@ export function GameScreen(props) {
         <Container component="main" maxWidth="lg" className={classes.root}>
             <Grid container spacing={isPhone ? 1 : 3}>
                 <Grid item xs={12} md={8}>
-                    <TableTop
-                        playerCardNames={props.playerCardNames}
-                        playerCardsHighlighted={props.playerCardsHighlighted}
-                        tableCardNames={props.tableCardNames}
-                        tableCardsHighlighted={props.tableCardsHighlighted}
-                        handleCardClick={props.handleCardClick}
-                        canSwitch={allowed('Switch')}
-                        isChlopfState={props.isChlopfState}
-                        numTurnsLeft={props.numTurnsLeft}
-                        currentRound={props.currentRound}
-                        isRoundOngoing={props.isRoundOngoing}
-                        isGameEnded={props.isGameEnded}
-                        myTurn={props.myTurn}
-                        currentPlayerName={currentPlayer ? currentPlayer.playerName : null}
-                        isEliminated={props.myTokens <= 0}
-                    />
+                    {props.isSpectator ? (
+                        <SpectatorTable
+                            players={props.players}
+                            playerHands={props.playerHands}
+                            tableCardNames={props.tableCardNames}
+                            currentPlayerId={props.currentPlayerId}
+                            currentRound={props.currentRound}
+                            numTurnsLeft={props.numTurnsLeft}
+                            isRoundOngoing={props.isRoundOngoing}
+                            isGameEnded={props.isGameEnded}
+                            isChlopfState={props.isChlopfState}
+                        />
+                    ) : (
+                        <>
+                            <TableTop
+                                playerCardNames={props.playerCardNames}
+                                playerCardsHighlighted={props.playerCardsHighlighted}
+                                tableCardNames={props.tableCardNames}
+                                tableCardsHighlighted={props.tableCardsHighlighted}
+                                handleCardClick={props.handleCardClick}
+                                canSwitch={allowed('Switch')}
+                                isChlopfState={props.isChlopfState}
+                                numTurnsLeft={props.numTurnsLeft}
+                                currentRound={props.currentRound}
+                                isRoundOngoing={props.isRoundOngoing}
+                                isGameEnded={props.isGameEnded}
+                                myTurn={props.myTurn}
+                                currentPlayerName={currentPlayer ? currentPlayer.playerName : null}
+                                isEliminated={props.myTokens <= 0}
+                            />
 
-                    <Grid container spacing={1} className={classes.actions}>
-                        <Grid item xs={3}>
-                            <Button
-                                className={classes.actionButton}
-                                disabled={!canLosen && !canChlopfen}
-                                variant="contained"
-                                color="primary"
-                                fullWidth
-                                onClick={() => props.handleMenuButtonClick(canLosen ? 'losen' : 'chlopfen')}
-                            >
-                                {canLosen ? 'Lose' : 'Chlopfe'}
-                            </Button>
-                        </Grid>
-                        <Grid item xs={3}>
-                            <Button
-                                className={classes.actionButton}
-                                disabled={!allowed('SwitchAll')}
-                                variant="outlined"
-                                color="primary"
-                                fullWidth
-                                startIcon={<SwapHorizIcon/>}
-                                onClick={() => props.handleMenuButtonClick('switchAll')}
-                            >
-                                Ali wechsle
-                            </Button>
-                        </Grid>
-                        <Grid item xs={3}>
-                            <Button
-                                className={cx(classes.actionButton, canHosenaben && classes.special)}
-                                disabled={!canHosenaben}
-                                variant={canHosenaben ? 'contained' : 'outlined'}
-                                color="secondary"
-                                fullWidth
-                                startIcon={<StarIcon/>}
-                                onClick={() => props.handleMenuButtonClick('hosenaben')}
-                            >
-                                Hosenabe
-                            </Button>
-                        </Grid>
-                        <Grid item xs={3}>
-                            <Button
-                                className={cx(classes.actionButton, canFeuer && classes.special)}
-                                disabled={!canFeuer}
-                                variant={canFeuer ? 'contained' : 'outlined'}
-                                color="secondary"
-                                fullWidth
-                                startIcon={<WhatshotIcon/>}
-                                onClick={() => props.handleMenuButtonClick('feuer')}
-                            >
-                                Füür
-                            </Button>
-                        </Grid>
-                    </Grid>
+                            <Grid container spacing={1} className={classes.actions}>
+                                <Grid item xs={3}>
+                                    <Button
+                                        className={classes.actionButton}
+                                        disabled={!canLosen && !canChlopfen}
+                                        variant="contained"
+                                        color="primary"
+                                        fullWidth
+                                        onClick={() => props.handleMenuButtonClick(canLosen ? 'losen' : 'chlopfen')}
+                                    >
+                                        {canLosen ? 'Lose' : 'Chlopfe'}
+                                    </Button>
+                                </Grid>
+                                <Grid item xs={3}>
+                                    <Button
+                                        className={classes.actionButton}
+                                        disabled={!allowed('SwitchAll')}
+                                        variant="outlined"
+                                        color="primary"
+                                        fullWidth
+                                        startIcon={<SwapHorizIcon/>}
+                                        onClick={() => props.handleMenuButtonClick('switchAll')}
+                                    >
+                                        Ali wechsle
+                                    </Button>
+                                </Grid>
+                                <Grid item xs={3}>
+                                    <Button
+                                        className={cx(classes.actionButton, canHosenaben && classes.special)}
+                                        disabled={!canHosenaben}
+                                        variant={canHosenaben ? 'contained' : 'outlined'}
+                                        color="secondary"
+                                        fullWidth
+                                        startIcon={<StarIcon/>}
+                                        onClick={() => props.handleMenuButtonClick('hosenaben')}
+                                    >
+                                        Hosenabe
+                                    </Button>
+                                </Grid>
+                                <Grid item xs={3}>
+                                    <Button
+                                        className={cx(classes.actionButton, canFeuer && classes.special)}
+                                        disabled={!canFeuer}
+                                        variant={canFeuer ? 'contained' : 'outlined'}
+                                        color="secondary"
+                                        fullWidth
+                                        startIcon={<WhatshotIcon/>}
+                                        onClick={() => props.handleMenuButtonClick('feuer')}
+                                    >
+                                        Füür
+                                    </Button>
+                                </Grid>
+                            </Grid>
+                        </>
+                    )}
                 </Grid>
 
                 <Grid item xs={12} md={4} className={classes.sidebar}>
-                    <PlayerList
-                        players={props.players}
-                        currentPlayerId={props.currentPlayerId}
-                        thisPlayerId={props.playerInfo.id}
-                        isRoundOngoing={props.isRoundOngoing}
-                    />
+                    {/* Spectators see the players (with their tokens) on the table already */}
+                    {!props.isSpectator && (
+                        <PlayerList
+                            players={props.players}
+                            spectators={props.spectators}
+                            currentPlayerId={props.currentPlayerId}
+                            thisPlayerId={props.playerInfo.id}
+                            isRoundOngoing={props.isRoundOngoing}
+                        />
+                    )}
 
                     <Paper className={classes.panel} variant="outlined">
                         <Typography variant="overline" color="textSecondary" component="h2">Verlauf</Typography>
@@ -250,7 +270,7 @@ export function GameScreen(props) {
                     </Paper>
 
                     <Button className={classes.leave} startIcon={<ExitToAppIcon/>} onClick={handleExitClick}>
-                        Spiel verlah
+                        {props.isSpectator ? 'Nüme zueluege' : 'Spiel verlah'}
                     </Button>
                 </Grid>
             </Grid>

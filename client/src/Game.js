@@ -61,7 +61,10 @@ export class Game extends React.Component {
             myTurnInfoOpen: false,
             isChlopfState: false,
             trashTalkMessage: null,
-            hasReceivedGameState: false
+            hasReceivedGameState: false,
+            isSpectator: false,
+            playerHands: [],
+            spectators: []
         };
 
         this.handleGameStateUpdate = this.handleGameStateUpdate.bind(this);
@@ -141,9 +144,9 @@ export class Game extends React.Component {
         this.setState({myTurnInfoOpen: myTurn})
         this.setState({isChlopfState: gameState.isChlopfState})
 
-        /* Update player's tokens */
-        const myTokens = gameState.playerOverview.players.find(pl => pl.playerId === this.props.playerInfo.id).tokens;
-        this.setState({myTokens: myTokens});
+        /* Update player's tokens (spectators have none) */
+        const me = gameState.playerOverview.players.find(pl => pl.playerId === this.props.playerInfo.id);
+        this.setState({myTokens: me ? me.tokens : 0});
 
         /* If the round just ended (or we (re)joined while its scorecard is due): update the scorecard and display it */
         if (gameState.isRoundEnded && (this.state.isRoundOngoing || !this.state.hasReceivedGameState)) {
@@ -170,7 +173,10 @@ export class Game extends React.Component {
             currentPlayerId: gameState.currentPlayerId,
             allowedActions: gameState.allowedActions,
             logEntries: gameState.log.reverse(),
-            hasReceivedGameState: true
+            hasReceivedGameState: true,
+            isSpectator: gameState.isSpectator,
+            playerHands: gameState.playerHands,
+            spectators: gameState.spectators
         });
     }
 
@@ -300,6 +306,8 @@ export class Game extends React.Component {
                 <GameWaitingArea
                     playerInfo={this.props.playerInfo}
                     players={this.state.players}
+                    spectators={this.state.spectators}
+                    isSpectator={this.state.isSpectator}
                     handleMenuButtonClick={this.handleMenuButtonClick}
                 />
             );
@@ -327,6 +335,9 @@ export class Game extends React.Component {
                         handleCardClick={this.handleCardClick}
                         isChlopfState={this.state.isChlopfState}
                         makeTrashTalk={this.trashTalk}
+                        isSpectator={this.state.isSpectator}
+                        playerHands={this.state.playerHands}
+                        spectators={this.state.spectators}
                     />
                     <TurnInfo
                         open={this.state.myTurnInfoOpen}
