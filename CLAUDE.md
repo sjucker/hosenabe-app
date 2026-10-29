@@ -22,7 +22,11 @@ All commands run from the repo root unless noted.
 - `npm start`: compiles the server and runs `dist/server.js`. It serves `client/build`, so build the client first.
 - Client tests: `cd client && npm test` (Vitest in watch mode, jsdom). For a single run of one test: `cd client && npx vitest run -t "<name>"`.
 
-The root `npm test` does nothing. The only client test (`App.test.jsx`) renders `App` with the socket wrapper mocked and checks the registration page. No linter is configured. CI (`.github/workflows/nodejs.yml`) runs clean-install, build and test on Node 10.x/12.x. Those versions are older than the current dependencies support (Express 5, TS 7).
+The root `npm test` does nothing. The only client test (`App.test.jsx`) renders `App` with the socket wrapper mocked and checks the registration page. No linter is configured. CI (`.github/workflows/nodejs.yml`) runs clean-install, build, the root test and the client tests (`vitest run`) on Node 24.x on every push, matching `engines` in `package.json`.
+
+## Branches and deployment
+
+The app runs on Heroku (`heroku-postbuild` builds the client). `develop` deploys to the staging app and `master` to production. Do new work on `develop` (or a branch off it) and merge `develop` into `master` to release.
 
 ## Architecture
 
