@@ -16,13 +16,13 @@ User-facing strings (log messages, validation errors, UI) are in Swiss German, e
 All commands run from the repo root unless noted.
 
 - `npm run clean-install`: `npm ci` for both server and client.
-- `npm run dev`: runs the server (`ts-node-dev src/server.ts`, port 3000) and the CRA dev server (port 3001, from `client/.env.development`) in parallel. In development the client connects to `localhost:3000` (see `client/src/api.js`).
-- `npm run build`: builds the client into `client/build`, then compiles the server with `tsc` into `dist/`.
+- `npm run dev`: runs the server (`tsx watch src/server.ts`, port 3000) and the CRA dev server (port 3001, from `client/.env.development`) in parallel. In development the client connects to `localhost:3000` (see `client/src/api.js`).
+- `npm run build`: builds the client into `client/build`, then compiles the server with `tsc` (TypeScript 7, the native compiler with no JS API, which is why dev uses `tsx` rather than `ts-node`) into `dist/`.
 - `npm run build-ts`: compiles only the server.
 - `npm start`: compiles the server and runs `dist/server.js`. It serves `client/build`, so build the client first.
 - Client tests: `cd client && npm test` (Jest in watch mode). For a single test: `cd client && npx react-scripts test --watchAll=false -t "<name>"`.
 
-The root `npm test` does nothing. The only client test (`App.test.js`) is leftover CRA boilerplate that looks for "learn react", so it is stale. No linter is configured beyond CRA's built-in `eslintConfig`. CI (`.github/workflows/nodejs.yml`) runs clean-install, build and test on Node 10.x/12.x. Those versions are older than the current dependencies support (Express 5, TS 5).
+The root `npm test` does nothing. The only client test (`App.test.js`) is leftover CRA boilerplate that looks for "learn react", so it is stale. No linter is configured beyond CRA's built-in `eslintConfig`. CI (`.github/workflows/nodejs.yml`) runs clean-install, build and test on Node 10.x/12.x. Those versions are older than the current dependencies support (Express 5, TS 7).
 
 ## Architecture
 
