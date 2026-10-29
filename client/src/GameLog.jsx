@@ -1,15 +1,15 @@
 import React from "react";
-import Typography from "@material-ui/core/Typography";
-import {makeStyles} from "@material-ui/core/styles";
+import Typography from "@mui/material/Typography";
+import {makeStyles} from "tss-react/mui";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles()(theme => ({
     list: {
         listStyle: 'none',
         margin: 0,
         padding: 0,
         maxHeight: 220,
         overflowY: 'auto',
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             maxHeight: 160
         }
     },
@@ -32,7 +32,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export function GameLog({logEntries}) {
-    const classes = useStyles();
+    const {classes} = useStyles();
 
     if (logEntries.length === 0) {
         return <Typography variant="body2" color="textSecondary">Na nüt passiert.</Typography>;

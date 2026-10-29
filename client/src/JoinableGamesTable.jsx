@@ -1,14 +1,14 @@
 import React from "react";
-import Button from "@material-ui/core/Button";
-import IconButton from "@material-ui/core/IconButton";
-import Tooltip from "@material-ui/core/Tooltip";
-import VisibilityIcon from "@material-ui/icons/Visibility";
-import Typography from "@material-ui/core/Typography";
-import StyleIcon from "@material-ui/icons/Style";
-import {makeStyles} from "@material-ui/core/styles";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import Typography from "@mui/material/Typography";
+import StyleIcon from "@mui/icons-material/Style";
+import {makeStyles} from "tss-react/mui";
 import {PlayerAvatar} from "./PlayerAvatar";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles()(theme => ({
     list: {
         listStyle: 'none',
         margin: 0,
@@ -55,7 +55,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export function JoinableGamesTable({joinableGames, handleJoinableGameSelect, handleSpectateGame}) {
-    const classes = useStyles();
+    const {classes} = useStyles();
 
     if (joinableGames.length === 0) {
         return (
@@ -80,7 +80,7 @@ export function JoinableGamesTable({joinableGames, handleJoinableGameSelect, han
                     {game.joinable ? (
                         <div className={classes.buttons}>
                             <Tooltip title="Zueluege">
-                                <IconButton aria-label="Zueluege" onClick={() => handleSpectateGame(game.gameId)}>
+                                <IconButton size="large" aria-label="Zueluege" onClick={() => handleSpectateGame(game.gameId)}>
                                     <VisibilityIcon/>
                                 </IconButton>
                             </Tooltip>

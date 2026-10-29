@@ -1,12 +1,12 @@
 import React from "react";
 import api from "./api";
 import {JoinableGamesTable} from "./JoinableGamesTable";
-import Container from "@material-ui/core/Container";
-import Typography from "@material-ui/core/Typography";
-import Button from "@material-ui/core/Button";
-import Box from "@material-ui/core/Box";
-import Paper from "@material-ui/core/Paper";
-import AddIcon from "@material-ui/icons/Add";
+import Container from "@mui/material/Container";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
+import AddIcon from "@mui/icons-material/Add";
 
 export class GameLobby extends React.Component {
 
@@ -98,7 +98,7 @@ export class GameLobby extends React.Component {
         return (
             <Container component="main" maxWidth="sm">
                 <Typography component="h1" variant="h4">Hoi {this.props.playerInfo.name}!</Typography>
-                <Box mt={0.5} mb={3}>
+                <Box sx={{mt: 0.5, mb: 3}}>
                     <Typography color="textSecondary">
                         Tritt emene offene Spiel bi, lueg zue oder fang es neus a.
                     </Typography>
@@ -113,9 +113,9 @@ export class GameLobby extends React.Component {
                 >
                     Neus Spiel
                 </Button>
-                <Box mt={3} mb={4}>
+                <Box sx={{mt: 3, mb: 4}}>
                     <Paper variant="outlined">
-                        <Box px={2} pt={1.5}>
+                        <Box sx={{px: 2, pt: 1.5}}>
                             <Typography variant="overline" color="textSecondary" component="h2">
                                 Spiel
                             </Typography>

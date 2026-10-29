@@ -3,23 +3,23 @@ import api from "./api";
 import {GameWaitingArea} from "./GameWaitingArea";
 import {GameScreen} from "./GameScreen";
 import {arrayContentEqual} from "./App";
-import Snackbar from "@material-ui/core/Snackbar";
-import Alert from "@material-ui/lab/Alert";
-import ChatIcon from "@material-ui/icons/Chat";
-import {makeStyles} from "@material-ui/core/styles";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
+import ChatIcon from "@mui/icons-material/Chat";
+import {makeStyles} from "tss-react/mui";
 
-const useTurnInfoStyles = makeStyles(theme => ({
+const useTurnInfoStyles = makeStyles()(theme => ({
     root: {
         top: 80,
         // Phones: show it over the app bar, so it doesn't cover the game status on the table
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             top: 4
         }
     }
 }));
 
 function TurnInfo({open, onClose}) {
-    const classes = useTurnInfoStyles();
+    const {classes} = useTurnInfoStyles();
     return (
         <Snackbar
             anchorOrigin={{

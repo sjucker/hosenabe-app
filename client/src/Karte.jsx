@@ -1,7 +1,6 @@
 import React from "react";
-import * as PropTypes from "prop-types";
 import cx from "./cx";
-import {makeStyles} from "@material-ui/core/styles";
+import {makeStyles} from "tss-react/mui";
 import CardDirectory from "./karten";
 import {cardLabel} from "./handValue";
 import {tokens} from "./theme";
@@ -9,7 +8,7 @@ import {tokens} from "./theme";
 // Card images are 161 x 247
 const CARD_RATIO = '161 / 247';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles()(theme => ({
     card: {
         position: 'relative',
         display: 'block',
@@ -33,7 +32,7 @@ const useStyles = makeStyles(theme => ({
     large: {
         width: 'min(27vw, 124px)',
         // Phones: also cap by the viewport height, so both card rows and the actions stay visible
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             width: 'min(27vw, 124px, 12.5vh)'
         }
     },
@@ -44,7 +43,7 @@ const useStyles = makeStyles(theme => ({
     small: {
         width: 38,
         boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             width: 32
         }
     },
@@ -76,8 +75,9 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
+// Props: cardName, handleClick, selected, selectable, placeholder, size ('large' | 'medium' | 'small')
 export function Karte(props) {
-    const classes = useStyles();
+    const {classes} = useStyles();
     const sizeClass = classes[props.size] || classes.large;
 
     if (props.placeholder) {
@@ -103,12 +103,3 @@ export function Karte(props) {
         </button>
     );
 }
-
-Karte.propTypes = {
-    cardName: PropTypes.string,
-    handleClick: PropTypes.func,
-    selected: PropTypes.bool,
-    selectable: PropTypes.bool,
-    placeholder: PropTypes.bool,
-    size: PropTypes.oneOf(['large', 'medium', 'small'])
-};

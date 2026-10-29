@@ -1,4 +1,4 @@
-import {createTheme} from "@material-ui/core";
+import {createTheme} from "@mui/material/styles";
 
 // Design tokens shared by components that draw outside the MUI palette (felt table, coins, ...)
 export const tokens = {
@@ -19,7 +19,7 @@ export function createAppTheme(useDarkMode) {
 
     const theme = createTheme({
         palette: {
-            type: useDarkMode ? 'dark' : 'light',
+            mode: useDarkMode ? 'dark' : 'light',
             primary: {
                 main: useDarkMode ? '#d9483b' : '#c0392b'
             },
@@ -53,39 +53,49 @@ export function createAppTheme(useDarkMode) {
                 letterSpacing: '0.12em'
             }
         },
-        props: {
+        components: {
             MuiButton: {
-                disableElevation: true
-            }
-        },
-        overrides: {
-            MuiButton: {
-                root: {
-                    borderRadius: 10
+                defaultProps: {
+                    disableElevation: true
                 },
-                sizeLarge: {
-                    padding: '10px 22px',
-                    fontSize: '1rem'
+                styleOverrides: {
+                    root: {
+                        borderRadius: 10
+                    },
+                    sizeLarge: {
+                        padding: '10px 22px',
+                        fontSize: '1rem'
+                    }
                 }
             },
             MuiPaper: {
-                rounded: {
-                    borderRadius: 16
+                styleOverrides: {
+                    // Dark mode would otherwise lighten elevated papers with a gradient overlay
+                    root: {
+                        backgroundImage: 'none'
+                    },
+                    rounded: {
+                        borderRadius: 16
+                    }
                 }
             },
             MuiDialog: {
-                paper: {
-                    borderRadius: 20
+                styleOverrides: {
+                    paper: {
+                        borderRadius: 20
+                    }
                 }
             }
         }
     });
 
     // Phones: a slimmer app bar leaves more room for the game
-    theme.overrides.MuiToolbar = {
-        regular: {
-            [theme.breakpoints.down('xs')]: {
-                minHeight: 48
+    theme.components.MuiToolbar = {
+        styleOverrides: {
+            regular: {
+                [theme.breakpoints.down('sm')]: {
+                    minHeight: 48
+                }
             }
         }
     };

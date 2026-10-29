@@ -1,16 +1,16 @@
 import React from "react";
-import Paper from "@material-ui/core/Paper";
-import Typography from "@material-ui/core/Typography";
-import {makeStyles} from "@material-ui/core/styles";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import {makeStyles} from "tss-react/mui";
 import cx from "./cx";
 import {PlayerAvatar} from "./PlayerAvatar";
 import {TokenPips} from "./TokenPips";
 import {tokens} from "./theme";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles()(theme => ({
     root: {
         padding: theme.spacing(2),
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             padding: theme.spacing(1, 1.5, 1.5)
         }
     },
@@ -18,7 +18,7 @@ const useStyles = makeStyles(theme => ({
         listStyle: 'none',
         margin: theme.spacing(1, 0, 0),
         padding: 0,
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             marginTop: 0
         }
     },
@@ -29,12 +29,12 @@ const useStyles = makeStyles(theme => ({
         padding: theme.spacing(1, 1),
         borderRadius: 12,
         transition: 'background-color 200ms ease',
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             padding: theme.spacing(0.5, 1)
         }
     },
     turn: {
-        backgroundColor: theme.palette.type === 'dark' ? 'rgba(232, 179, 58, 0.14)' : 'rgba(232, 179, 58, 0.2)',
+        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(232, 179, 58, 0.14)' : 'rgba(232, 179, 58, 0.2)',
         boxShadow: `inset 3px 0 0 ${tokens.gold}`
     },
     out: {
@@ -62,13 +62,13 @@ const useStyles = makeStyles(theme => ({
         color: theme.palette.text.secondary
     },
     turnStatus: {
-        color: theme.palette.type === 'dark' ? tokens.gold : tokens.goldDark,
+        color: theme.palette.mode === 'dark' ? tokens.gold : tokens.goldDark,
         fontWeight: 600
     }
 }));
 
 export function PlayerList({players, spectators, currentPlayerId, thisPlayerId, isRoundOngoing}) {
-    const classes = useStyles();
+    const {classes} = useStyles();
 
     return (
         <Paper className={classes.root} variant="outlined">

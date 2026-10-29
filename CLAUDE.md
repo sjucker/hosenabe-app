@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A multiplayer browser version of the Swiss card game **Hosenabe-Jass** (rules: https://www.jasswelt.ch/blogs/neuigkeiten/jassregel-vom-hosenabe-jass). There are two packages, each with its own `package.json` and `node_modules`:
 
 - **Server** (repo root, `src/`): Node + TypeScript. It runs Express (serves the built client from `client/build`) and a Socket.IO server that holds all game state in memory.
-- **Client** (`client/`): Create React App, plain JavaScript, Material-UI v4, React 17.
+- **Client** (`client/`): Vite, plain JavaScript (`.jsx` for files with JSX), MUI v7, React 19.
 
 User-facing strings (log messages, validation errors, UI) are in Swiss German, e.g. `'hät gchlopfet.'`. Keep that style when adding text.
 
@@ -16,13 +16,13 @@ User-facing strings (log messages, validation errors, UI) are in Swiss German, e
 All commands run from the repo root unless noted.
 
 - `npm run clean-install`: `npm ci` for both server and client.
-- `npm run dev`: runs the server (`tsx watch src/server.ts`, port 3000) and the CRA dev server (port 3001, from `client/.env.development`) in parallel. In development the client connects to `localhost:3000` (see `client/src/api.js`).
+- `npm run dev`: runs the server (`tsx watch src/server.ts`, port 3000) and the Vite dev server (port 3001, set in `client/vite.config.js`) in parallel. In development the client connects to `localhost:3000` (see `client/src/api.js`).
 - `npm run build`: builds the client into `client/build`, then compiles the server with `tsc` (TypeScript 7, the native compiler with no JS API, which is why dev uses `tsx` rather than `ts-node`) into `dist/`.
 - `npm run build-ts`: compiles only the server.
 - `npm start`: compiles the server and runs `dist/server.js`. It serves `client/build`, so build the client first.
-- Client tests: `cd client && npm test` (Jest in watch mode). For a single test: `cd client && npx react-scripts test --watchAll=false -t "<name>"`.
+- Client tests: `cd client && npm test` (Vitest in watch mode, jsdom). For a single run of one test: `cd client && npx vitest run -t "<name>"`.
 
-The root `npm test` does nothing. The only client test (`App.test.js`) is leftover CRA boilerplate that looks for "learn react", so it is stale. No linter is configured beyond CRA's built-in `eslintConfig`. CI (`.github/workflows/nodejs.yml`) runs clean-install, build and test on Node 10.x/12.x. Those versions are older than the current dependencies support (Express 5, TS 7).
+The root `npm test` does nothing. The only client test (`App.test.jsx`) renders `App` with the socket wrapper mocked and checks the registration page. No linter is configured. CI (`.github/workflows/nodejs.yml`) runs clean-install, build and test on Node 10.x/12.x. Those versions are older than the current dependencies support (Express 5, TS 7).
 
 ## Architecture
 
@@ -38,7 +38,9 @@ The root `npm test` does nothing. The only client test (`App.test.js`) is leftov
 
 ### Client (`client/src/`)
 
-`App.js` decides which screen to show from its state flags: `RegistrationPage` → `GameLobby` → `Game` (which contains `GameWaitingArea` / `GameScreen` / `TableTop` / `Scorecard` / `GameLog`). Every component talks to the server through the singleton socket wrapper in `api.js` (`emitToServer`, `setCallbackOnMessage`, `removeCallbackOnMessage`) and registers its own listeners. **Event names are plain strings duplicated between `src/api.ts`, `src/ai.ts` and the client components.** When you add or rename an event, update all of them. `karten.js` maps server card names (`suit + rank`, e.g. `"RosenAs"`) to the images in `karten/`.
+`App.jsx` decides which screen to show from its state flags: `RegistrationPage` → `GameLobby` → `Game` (which contains `GameWaitingArea` / `GameScreen` / `TableTop` / `Scorecard` / `GameLog`). Every component talks to the server through the singleton socket wrapper in `api.js` (`emitToServer`, `setCallbackOnMessage`, `removeCallbackOnMessage`) and registers its own listeners. **Event names are plain strings duplicated between `src/api.ts`, `src/ai.ts` and the client components.** When you add or rename an event, update all of them. `karten.js` maps server card names (`suit + rank`, e.g. `"RosenAs"`) to the images in `karten/`.
+
+Styling: components use `makeStyles`/`withStyles` from `tss-react/mui` (the successor of MUI v4's JSS API) and join classes with the local `cx.js`. Don't use tss-react's own `cx`: it merges classes into a new one, which breaks `'& + &'` selectors. `App.jsx` gives MUI an emotion cache that is prepended to `<head>` and tss-react its own cache after it, so component classes override MUI's default styles. MUI v5+ breakpoints are shifted: `down('sm')` means below 600px, which was `down('xs')` in v4.
 
 ## Game rules as implemented (`game.ts`)
 

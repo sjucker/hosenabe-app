@@ -1,12 +1,12 @@
 import React from "react";
-import {makeStyles} from "@material-ui/core/styles";
+import {makeStyles} from "tss-react/mui";
 import cx from "./cx";
 import {tokens as designTokens} from "./theme";
 
 // Every player starts with 3 tokens (see Game.addPlayer on the server)
 const MAX_TOKENS = 3;
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles()(theme => ({
     root: {
         display: 'inline-flex',
         gap: 4,
@@ -27,7 +27,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export function TokenPips({tokens, className}) {
-    const classes = useStyles();
+    const {classes} = useStyles();
     const label = `${tokens} vo ${MAX_TOKENS} Isätz`;
     const pips = [];
     for (let i = 0; i < Math.max(MAX_TOKENS, tokens); i++) {

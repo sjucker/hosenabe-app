@@ -1,20 +1,23 @@
 import React from 'react';
 import './App.css'
 import {RegistrationPage} from "./RegistrationPage";
-import AppBar from "@material-ui/core/AppBar";
-import Typography from "@material-ui/core/Typography";
-import Toolbar from "@material-ui/core/Toolbar";
-import CssBaseline from "@material-ui/core/CssBaseline";
-import {ThemeProvider} from "@material-ui/core/styles";
+import AppBar from "@mui/material/AppBar";
+import Typography from "@mui/material/Typography";
+import Toolbar from "@mui/material/Toolbar";
+import CssBaseline from "@mui/material/CssBaseline";
+import {ThemeProvider} from "@mui/material/styles";
+import {CacheProvider} from "@emotion/react";
+import createCache from "@emotion/cache";
+import {TssCacheProvider} from "tss-react";
 import {GameLobby} from "./GameLobby";
 import {Game} from "./Game";
-import Box from "@material-ui/core/Box";
-import Chip from "@material-ui/core/Chip";
-import IconButton from "@material-ui/core/IconButton";
-import Tooltip from "@material-ui/core/Tooltip";
-import Brightness4Icon from '@material-ui/icons/Brightness4';
-import Brightness7Icon from '@material-ui/icons/Brightness7';
-import PersonIcon from '@material-ui/icons/Person';
+import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+import PersonIcon from '@mui/icons-material/Person';
 import api from "./api";
 import {createAppTheme, tokens} from "./theme";
 
@@ -76,6 +79,10 @@ function storeDarkModePreference(useDarkMode) {
         // Storage unavailable -- preference only lasts for this visit
     }
 }
+
+// MUI's styles go first in <head> and ours (tss-react) after them, so our classes override MUI's
+const muiCache = createCache({key: 'mui', prepend: true});
+const tssCache = createCache({key: 'tss'});
 
 // Brand mark: three fanned cards
 function BrandMark() {
@@ -198,39 +205,43 @@ class App extends React.Component {
         const modeLabel = this.state.useDarkMode ? 'Häll' : 'Dunkel';
 
         return (
-            <ThemeProvider theme={theme}>
-                <CssBaseline/>
-                <AppBar position="sticky" elevation={0} style={{backgroundColor: tokens.header, color: '#ffffff'}}>
-                    <Toolbar>
-                        <BrandMark/>
-                        <Typography variant="h6" component="div" style={{flexGrow: 1, fontSize: '1.3rem'}}>
-                            Hosenabe
-                        </Typography>
-                        {this.state.hasPlayerRegistered && (
-                            <Chip
-                                icon={<PersonIcon style={{color: 'inherit'}}/>}
-                                label={this.state.playerInfo.name}
-                                size="small"
-                                style={{
-                                    color: '#ffffff',
-                                    backgroundColor: 'rgba(255, 255, 255, 0.14)',
-                                    fontWeight: 500,
-                                    maxWidth: 160
-                                }}
-                            />
-                        )}
-                        <Tooltip title={modeLabel}>
-                            <IconButton color="inherit" edge="end" onClick={this.toggleDarkMode}
-                                        aria-label={modeLabel} style={{marginLeft: 8}}>
-                                {this.state.useDarkMode ? <Brightness7Icon/> : <Brightness4Icon/>}
-                            </IconButton>
-                        </Tooltip>
-                    </Toolbar>
-                </AppBar>
-                <Box pt={{xs: 1, sm: 3}}>
-                    {pageElement}
-                </Box>
-            </ThemeProvider>
+            <CacheProvider value={muiCache}>
+                <TssCacheProvider value={tssCache}>
+                    <ThemeProvider theme={theme}>
+                        <CssBaseline/>
+                        <AppBar position="sticky" elevation={0} style={{backgroundColor: tokens.header, color: '#ffffff'}}>
+                            <Toolbar>
+                                <BrandMark/>
+                                <Typography variant="h6" component="div" style={{flexGrow: 1, fontSize: '1.3rem'}}>
+                                    Hosenabe
+                                </Typography>
+                                {this.state.hasPlayerRegistered && (
+                                    <Chip
+                                        icon={<PersonIcon style={{color: 'inherit'}}/>}
+                                        label={this.state.playerInfo.name}
+                                        size="small"
+                                        style={{
+                                            color: '#ffffff',
+                                            backgroundColor: 'rgba(255, 255, 255, 0.14)',
+                                            fontWeight: 500,
+                                            maxWidth: 160
+                                        }}
+                                    />
+                                )}
+                                <Tooltip title={modeLabel}>
+                                    <IconButton color="inherit" edge="end" size="large" onClick={this.toggleDarkMode}
+                                                aria-label={modeLabel} style={{marginLeft: 8}}>
+                                        {this.state.useDarkMode ? <Brightness7Icon/> : <Brightness4Icon/>}
+                                    </IconButton>
+                                </Tooltip>
+                            </Toolbar>
+                        </AppBar>
+                        <Box sx={{pt: {xs: 1, sm: 3}}}>
+                            {pageElement}
+                        </Box>
+                    </ThemeProvider>
+                </TssCacheProvider>
+            </CacheProvider>
         );
     }
 }

@@ -1,22 +1,22 @@
 import React from "react";
-import Container from "@material-ui/core/Container";
-import Paper from "@material-ui/core/Paper";
-import Typography from "@material-ui/core/Typography";
-import Button from "@material-ui/core/Button";
-import Chip from "@material-ui/core/Chip";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import PlayArrowIcon from "@material-ui/icons/PlayArrow";
-import ComputerIcon from "@material-ui/icons/Computer";
-import MoodBadIcon from "@material-ui/icons/MoodBad";
-import ExitToAppIcon from "@material-ui/icons/ExitToApp";
-import {makeStyles} from "@material-ui/core/styles";
+import Container from "@mui/material/Container";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
+import CircularProgress from "@mui/material/CircularProgress";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import ComputerIcon from "@mui/icons-material/Computer";
+import MoodBadIcon from "@mui/icons-material/MoodBad";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import {makeStyles} from "tss-react/mui";
 import {PlayerAvatar} from "./PlayerAvatar";
 
 // Mirrors Game.isGameJoinable / isGameStartable on the server
 const MAX_PLAYERS = 11;
 const MIN_PLAYERS = 2;
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles()(theme => ({
     root: {
         paddingBottom: theme.spacing(4)
     },
@@ -82,7 +82,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export function GameWaitingArea({playerInfo, players, spectators, isSpectator, handleMenuButtonClick}) {
-    const classes = useStyles();
+    const {classes} = useStyles();
 
     // The first player in the game is the host
     const numPlayers = players.length;
