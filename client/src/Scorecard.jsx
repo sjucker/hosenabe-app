@@ -1,34 +1,34 @@
 import React from "react";
-import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import Typography from "@material-ui/core/Typography";
-import EmojiEventsIcon from "@material-ui/icons/EmojiEvents";
-import {makeStyles} from "@material-ui/core/styles";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import Typography from "@mui/material/Typography";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import {makeStyles} from "tss-react/mui";
 import cx from "./cx";
 import {Karte} from "./Karte";
 import {TokenPips} from "./TokenPips";
 import {formatPoints} from "./handValue";
 import {tokens} from "./theme";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles()(theme => ({
     paper: {
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             margin: theme.spacing(2),
-            width: `calc(100% - ${theme.spacing(4)}px)`
+            width: `calc(100% - ${theme.spacing(4)})`
         }
     },
     content: {
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             padding: theme.spacing(1, 1.5)
         }
     },
     title: {
         textAlign: 'center',
         paddingBottom: theme.spacing(1),
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             padding: theme.spacing(2, 2, 1)
         }
     },
@@ -52,7 +52,7 @@ const useStyles = makeStyles(theme => ({
         justifyContent: 'center',
         gap: 6,
         marginBottom: theme.spacing(2),
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             marginBottom: theme.spacing(1)
         }
     },
@@ -75,7 +75,7 @@ const useStyles = makeStyles(theme => ({
         gap: theme.spacing(1.5),
         padding: theme.spacing(1.25, 1.5),
         borderRadius: 14,
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             padding: theme.spacing(0.75, 1.25)
         },
         '& + &': {
@@ -83,7 +83,7 @@ const useStyles = makeStyles(theme => ({
         }
     },
     loser: {
-        backgroundColor: theme.palette.type === 'dark' ? 'rgba(217, 72, 59, 0.16)' : 'rgba(192, 57, 43, 0.09)'
+        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(217, 72, 59, 0.16)' : 'rgba(192, 57, 43, 0.09)'
     },
     who: {
         flex: 1,
@@ -143,7 +143,7 @@ const useStyles = makeStyles(theme => ({
     },
     actions: {
         padding: theme.spacing(1, 3, 3),
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             padding: theme.spacing(1, 2, 2)
         }
     }
@@ -178,12 +178,12 @@ function buildTitle(scorecard, isGameEnded) {
 }
 
 export function Scorecard({scorecard, thisPlayerId, isGameEnded, canStartRound, handleMenuButtonClick}) {
-    const classes = useStyles();
+    const {classes} = useStyles();
     const {title, subtitle} = buildTitle(scorecard, isGameEnded);
 
     return (
         <Dialog open={true} fullWidth maxWidth="sm" aria-labelledby="scorecard-title" classes={{paper: classes.paper}}>
-            <DialogTitle id="scorecard-title" disableTypography className={classes.title}>
+            <DialogTitle id="scorecard-title" component="div" className={classes.title}>
                 {isGameEnded && <EmojiEventsIcon className={classes.trophy}/>}
                 <Typography variant="h5" component="h2">{title}</Typography>
                 <span className={classes.subtitle}>{subtitle}</span>

@@ -1,14 +1,20 @@
 import React from "react";
-import Typography from "@material-ui/core/Typography";
-import {makeStyles} from "@material-ui/core/styles";
+import Typography from "@mui/material/Typography";
+import {makeStyles} from "tss-react/mui";
+import {keyframes} from "tss-react";
 import cx from "./cx";
 import {Karte} from "./Karte";
 import {analyzeHand, formatPoints} from "./handValue";
 import {tokens} from "./theme";
 import {TokenPips} from "./TokenPips";
-import MoodBadIcon from "@material-ui/icons/MoodBad";
+import MoodBadIcon from "@mui/icons-material/MoodBad";
 
-const useStyles = makeStyles(theme => ({
+const glow = keyframes({
+    '0%, 100%': {boxShadow: '0 0 0 0 rgba(232, 179, 58, 0.7)'},
+    '50%': {boxShadow: '0 0 0 8px rgba(232, 179, 58, 0)'}
+});
+
+const useStyles = makeStyles()(theme => ({
     felt: {
         position: 'relative',
         borderRadius: 28,
@@ -20,7 +26,7 @@ const useStyles = makeStyles(theme => ({
         [theme.breakpoints.up('sm')]: {
             padding: theme.spacing(2.5, 4, 3)
         },
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             borderRadius: 20,
             borderWidth: 6,
             padding: theme.spacing(1, 1, 1.25)
@@ -33,7 +39,7 @@ const useStyles = makeStyles(theme => ({
         justifyContent: 'space-between',
         gap: theme.spacing(1),
         minHeight: 32,
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             minHeight: 28,
             padding: theme.spacing(0, 0.5)
         }
@@ -43,7 +49,7 @@ const useStyles = makeStyles(theme => ({
         fontWeight: 600,
         fontSize: '1.05rem',
         color: tokens.feltTextMuted,
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             fontSize: '0.95rem'
         }
     },
@@ -63,7 +69,7 @@ const useStyles = makeStyles(theme => ({
         background: 'rgba(0,0,0,0.28)',
         color: tokens.feltText,
         whiteSpace: 'nowrap',
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             padding: '3px 10px',
             fontSize: '0.8rem'
         }
@@ -71,20 +77,19 @@ const useStyles = makeStyles(theme => ({
     myTurnPill: {
         background: tokens.gold,
         color: '#2b1d00',
-        animation: '$glow 1.6s ease-in-out infinite'
+        animation: `${glow} 1.6s ease-in-out infinite`,
+        '@media (prefers-reduced-motion: reduce)': {
+            animation: 'none'
+        }
     },
     chlopfPill: {
         background: '#c0392b',
         color: '#ffffff'
     },
-    '@keyframes glow': {
-        '0%, 100%': {boxShadow: '0 0 0 0 rgba(232, 179, 58, 0.7)'},
-        '50%': {boxShadow: '0 0 0 8px rgba(232, 179, 58, 0)'}
-    },
     section: {
         marginTop: theme.spacing(2),
         textAlign: 'center',
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             marginTop: theme.spacing(1)
         }
     },
@@ -95,7 +100,7 @@ const useStyles = makeStyles(theme => ({
         gap: theme.spacing(1),
         minHeight: 28,
         marginBottom: theme.spacing(1.5),
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             minHeight: 22,
             marginBottom: theme.spacing(0.75)
         }
@@ -132,7 +137,7 @@ const useStyles = makeStyles(theme => ({
         margin: theme.spacing(2.5, 'auto', 0),
         maxWidth: 420,
         background: 'linear-gradient(90deg, transparent, rgba(243,239,226,0.3), transparent)',
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             marginTop: theme.spacing(1.5)
         }
     },
@@ -142,14 +147,9 @@ const useStyles = makeStyles(theme => ({
         textAlign: 'center',
         fontSize: '0.9rem',
         color: tokens.feltTextMuted,
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             marginTop: theme.spacing(1),
             fontSize: '0.8rem'
-        }
-    },
-    '@media (prefers-reduced-motion: reduce)': {
-        myTurnPill: {
-            animation: 'none'
         }
     },
     // Spectator view: every player's hand
@@ -168,7 +168,7 @@ const useStyles = makeStyles(theme => ({
         '& + &': {
             marginTop: theme.spacing(0.5)
         },
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             gap: theme.spacing(1),
             padding: theme.spacing(0.75, 1)
         }
@@ -228,7 +228,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 function CardRow({cardNames, highlighted, rowName, selectable, placeholder, handleCardClick}) {
-    const classes = useStyles();
+    const {classes} = useStyles();
     return (
         <div className={classes.cards}>
             {cardNames.map((cardName, idx) => (
@@ -246,7 +246,7 @@ function CardRow({cardNames, highlighted, rowName, selectable, placeholder, hand
 }
 
 export function TableTop(props) {
-    const classes = useStyles();
+    const {classes} = useStyles();
 
     const isHandSelected = props.playerCardsHighlighted.some(h => h);
     const isTableSelected = props.tableCardsHighlighted.some(h => h);
@@ -358,7 +358,7 @@ function HandValuePill({classes, cardNames}) {
 
 export function SpectatorTable(props) {
     // Table as seen by a spectator: the table cards plus every player's hand
-    const classes = useStyles();
+    const {classes} = useStyles();
     const currentPlayer = props.players.find(pl => pl.playerId === props.currentPlayerId);
 
     return (

@@ -4,31 +4,38 @@ import {Scorecard} from "./Scorecard";
 import {SpectatorTable, TableTop} from "./TableTop";
 import {PlayerList} from "./PlayerList";
 import {GameLog} from "./GameLog";
-import Container from "@material-ui/core/Container";
-import Grid from "@material-ui/core/Grid";
-import Button from "@material-ui/core/Button";
-import Paper from "@material-ui/core/Paper";
-import Typography from "@material-ui/core/Typography";
-import InputBase from "@material-ui/core/InputBase";
-import IconButton from "@material-ui/core/IconButton";
-import Dialog from "@material-ui/core/Dialog";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
-import DialogActions from "@material-ui/core/DialogActions";
-import SendIcon from '@material-ui/icons/Send';
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
-import SwapHorizIcon from '@material-ui/icons/SwapHoriz';
-import WhatshotIcon from '@material-ui/icons/Whatshot';
-import StarIcon from '@material-ui/icons/Star';
-import {makeStyles, useTheme} from "@material-ui/core/styles";
-import useMediaQuery from "@material-ui/core/useMediaQuery";
+import Container from "@mui/material/Container";
+import Grid from "@mui/material/Grid";
+import Button from "@mui/material/Button";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import InputBase from "@mui/material/InputBase";
+import IconButton from "@mui/material/IconButton";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogActions from "@mui/material/DialogActions";
+import SendIcon from '@mui/icons-material/Send';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import WhatshotIcon from '@mui/icons-material/Whatshot';
+import StarIcon from '@mui/icons-material/Star';
+import {useTheme} from "@mui/material/styles";
+import {makeStyles} from "tss-react/mui";
+import {keyframes} from "tss-react";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import cx from "./cx";
 
-const useStyles = makeStyles(theme => ({
+const pulse = keyframes({
+    '0%, 100%': {boxShadow: '0 0 0 0 rgba(232, 179, 58, 0.75)'},
+    '50%': {boxShadow: '0 0 0 10px rgba(232, 179, 58, 0)'}
+});
+
+const useStyles = makeStyles()(theme => ({
     root: {
         paddingBottom: theme.spacing(4),
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             paddingLeft: theme.spacing(1),
             paddingRight: theme.spacing(1),
             paddingBottom: theme.spacing(2)
@@ -36,14 +43,14 @@ const useStyles = makeStyles(theme => ({
     },
     actions: {
         marginTop: theme.spacing(2),
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             marginTop: theme.spacing(1)
         }
     },
     actionButton: {
         height: 52,
         fontSize: '1rem',
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             height: 44,
             padding: theme.spacing(0, 0.5),
             fontSize: '0.85rem',
@@ -55,14 +62,8 @@ const useStyles = makeStyles(theme => ({
         }
     },
     special: {
-        animation: '$pulse 1.4s ease-in-out infinite'
-    },
-    '@keyframes pulse': {
-        '0%, 100%': {boxShadow: '0 0 0 0 rgba(232, 179, 58, 0.75)'},
-        '50%': {boxShadow: '0 0 0 10px rgba(232, 179, 58, 0)'}
-    },
-    '@media (prefers-reduced-motion: reduce)': {
-        special: {
+        animation: `${pulse} 1.4s ease-in-out infinite`,
+        '@media (prefers-reduced-motion: reduce)': {
             animation: 'none'
         }
     },
@@ -70,13 +71,13 @@ const useStyles = makeStyles(theme => ({
         display: 'flex',
         flexDirection: 'column',
         gap: theme.spacing(2),
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             gap: theme.spacing(1)
         }
     },
     panel: {
         padding: theme.spacing(2),
-        [theme.breakpoints.down('xs')]: {
+        [theme.breakpoints.down('sm')]: {
             padding: theme.spacing(1, 1.5, 1.5)
         }
     },
@@ -102,8 +103,8 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export function GameScreen(props) {
-    const classes = useStyles();
-    const isPhone = useMediaQuery(useTheme().breakpoints.down('xs'));
+    const {classes} = useStyles();
+    const isPhone = useMediaQuery(useTheme().breakpoints.down('sm'));
     const [trashTalkMessage, setTrashTalkMessage] = useState('');
     const [confirmExitOpen, setConfirmExitOpen] = useState(false);
 
@@ -150,7 +151,7 @@ export function GameScreen(props) {
     return (
         <Container component="main" maxWidth="lg" className={classes.root}>
             <Grid container spacing={isPhone ? 1 : 3}>
-                <Grid item xs={12} md={8}>
+                <Grid size={{xs: 12, md: 8}}>
                     {props.isSpectator ? (
                         <SpectatorTable
                             players={props.players}
@@ -184,7 +185,7 @@ export function GameScreen(props) {
                             />
 
                             <Grid container spacing={1} className={classes.actions}>
-                                <Grid item xs={3}>
+                                <Grid size={3}>
                                     <Button
                                         className={classes.actionButton}
                                         disabled={!canLosen && !canChlopfen}
@@ -196,7 +197,7 @@ export function GameScreen(props) {
                                         {canLosen ? 'Lose' : 'Chlopfe'}
                                     </Button>
                                 </Grid>
-                                <Grid item xs={3}>
+                                <Grid size={3}>
                                     <Button
                                         className={classes.actionButton}
                                         disabled={!allowed('SwitchAll')}
@@ -209,7 +210,7 @@ export function GameScreen(props) {
                                         Ali wechsle
                                     </Button>
                                 </Grid>
-                                <Grid item xs={3}>
+                                <Grid size={3}>
                                     <Button
                                         className={cx(classes.actionButton, canHosenaben && classes.special)}
                                         disabled={!canHosenaben}
@@ -222,7 +223,7 @@ export function GameScreen(props) {
                                         Hosenabe
                                     </Button>
                                 </Grid>
-                                <Grid item xs={3}>
+                                <Grid size={3}>
                                     <Button
                                         className={cx(classes.actionButton, canFeuer && classes.special)}
                                         disabled={!canFeuer}
@@ -240,7 +241,7 @@ export function GameScreen(props) {
                     )}
                 </Grid>
 
-                <Grid item xs={12} md={4} className={classes.sidebar}>
+                <Grid size={{xs: 12, md: 4}} className={classes.sidebar}>
                     {/* Spectators see the players (with their tokens) on the table already */}
                     {!props.isSpectator && (
                         <PlayerList
@@ -270,7 +271,7 @@ export function GameScreen(props) {
                         </form>
                     </Paper>
 
-                    <Button className={classes.leave} startIcon={<ExitToAppIcon/>} onClick={handleExitClick}>
+                    <Button className={classes.leave} color="inherit" startIcon={<ExitToAppIcon/>} onClick={handleExitClick}>
                         {props.isSpectator ? 'Nüme zueluege' : 'Spiel verlah'}
                     </Button>
                 </Grid>
@@ -286,7 +287,7 @@ export function GameScreen(props) {
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setConfirmExitOpen(false)}>Bliibe</Button>
+                    <Button color="inherit" onClick={() => setConfirmExitOpen(false)}>Bliibe</Button>
                     <Button
                         color="primary"
                         variant="contained"

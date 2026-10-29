@@ -1,11 +1,11 @@
 import React from "react";
 import api from "./api";
-import Container from "@material-ui/core/Container";
-import Typography from "@material-ui/core/Typography";
-import TextField from "@material-ui/core/TextField";
-import Button from "@material-ui/core/Button";
-import Paper from "@material-ui/core/Paper";
-import {withStyles} from "@material-ui/core/styles";
+import Container from "@mui/material/Container";
+import Typography from "@mui/material/Typography";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import Paper from "@mui/material/Paper";
+import {withStyles} from "tss-react/mui";
 import CardDirectory from "./karten";
 import {tokens} from "./theme";
 
@@ -49,7 +49,7 @@ const styles = theme => ({
         marginTop: theme.spacing(2)
     },
     accent: {
-        color: theme.palette.type === 'dark' ? tokens.gold : '#8a5d00',
+        color: theme.palette.mode === 'dark' ? tokens.gold : '#8a5d00',
         fontWeight: 500
     }
 });
@@ -183,4 +183,4 @@ class RegistrationPageBase extends React.Component {
     }
 }
 
-export const RegistrationPage = withStyles(styles)(RegistrationPageBase);
+export const RegistrationPage = withStyles(RegistrationPageBase, styles);

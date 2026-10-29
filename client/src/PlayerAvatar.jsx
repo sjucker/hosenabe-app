@@ -1,8 +1,8 @@
 import React from "react";
-import Avatar from "@material-ui/core/Avatar";
-import ComputerIcon from "@material-ui/icons/Computer";
-import MoodBadIcon from "@material-ui/icons/MoodBad";
-import {makeStyles} from "@material-ui/core/styles";
+import Avatar from "@mui/material/Avatar";
+import ComputerIcon from "@mui/icons-material/Computer";
+import MoodBadIcon from "@mui/icons-material/MoodBad";
+import {makeStyles} from "tss-react/mui";
 
 // Stable, pleasant colours per player name
 const AVATAR_COLORS = ['#c0392b', '#2e7d5b', '#3b6ea8', '#8e5bb5', '#c77d1a', '#2b8a9b', '#a8436f', '#5c6b2e'];
@@ -15,7 +15,7 @@ function colorForName(name) {
     return AVATAR_COLORS[hash % AVATAR_COLORS.length];
 }
 
-const useStyles = makeStyles({
+const useStyles = makeStyles()({
     avatar: {
         width: 36,
         height: 36,
@@ -26,7 +26,7 @@ const useStyles = makeStyles({
 });
 
 export function PlayerAvatar({name, isHuman, aiType}) {
-    const classes = useStyles();
+    const {classes} = useStyles();
     let content;
     if (isHuman) {
         content = name.charAt(0).toUpperCase();
